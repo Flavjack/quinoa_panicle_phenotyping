@@ -1,0 +1,452 @@
+---
+title: "quinoa-panicles_classification-model_accuracy"
+format: html
+jupyter: python3
+execute:
+  eval: false
+editor_options: 
+  chunk_output_type: console
+execute: 
+  eval: false
+---
+
+# Setup
+
+```{r}
+#| label:  setup
+
+source('https://inkaverse.com/setup.r')
+```
+
+# Setup enviroment in local machine
+
+> https://www.analyticsvidhya.com/blog/2022/11/how-to-make-a-image-classification-model-using-deep-learning/
+
+> https://www.analyticsvidhya.com/blog/2020/08/top-4-pre-trained-models-for-image-classification-with-python-code/
+
+## Install enviroment (Lydia)
+
+```{git}
+cd 2-stage-approach/2-classification-part/
+conda env create -f classifier-panicles.yml
+```
+
+## Activate conda
+
+```{git}
+cd 2-stage-approach/2-classification-part/
+conda init bash
+conda activate classifier-panicles
+conda env list
+```
+
+## Activate 
+
+#> load 3-classifier-panicles-model-training.ipynb
+
+```{git}
+jupyter notebook
+```
+
+# Setup environment in server
+
+## For the first time
+
+(1) Download Anaconda and install on the server
+
+source: https://www.anaconda.com/products/distribution#Downloads
+
+```{git}
+scp -r C:/Users/floza/git/quino-img-analysis/2-stage-approach/2-classification-part/Anaconda3-2022.10-Linux-x86_64.sh flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio
+
+ssh flaaw57@server231.ipsp.uni-hohenheim.de
+
+bash Anaconda3-2022.10-Linux-x86_64.sh
+
+exit
+```
+
+> Environment installation `classifier-panicles.yml` was not working on server. I installed `tensorflow` and run the script and it was working without problems.
+
+```{git}
+python -m pip install tensorflow
+```
+
+## Daily work
+
+(1) Update local jupyter notebook to server (if necessary)
+
+```{git}
+scp -r flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/modelacc/quinoa-panicles_classification-model_accuracy.ipynb C:/Users/floza/git/quino-img-analysis/2-stage-approach/2-classification-part/
+```
+
+- Upload folder to train and test
+
+```{git}
+scp -r "F:\My Drive\quinoa-img\imageJ" flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/paniclesimgs
+
+scp -r "F:\My Drive\quinoa-img\imgs4train" flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/paniclesimgs
+
+scp -r "F:\My Drive\quinoa-img\original-images\F6-camacani" flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/paniclesimgs
+
+scp -r "F:\My Drive\quinoa-img\original-images\F7-illpa" flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/paniclesimgs
+
+scp -r "F:\My Drive\quinoa-img\original-images\F8-camacani" flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/paniclesimgs
+
+scp -r "F:\My Drive\quinoa-img\original-images\F9-illpa" flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/paniclesimgs
+
+scp -r "F:\My Drive\quinoa-img\original-images\scale-images" flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/paniclesimgs
+```
+
+(3) Run a remote jupyter notebook
+
+Source: https://www.tecmint.com/keep-remote-ssh-sessions-running-after-disconnection/
+
+> On server (Jupyter on the web + background process)
+
+```{git}
+ssh flaaw57@server231.ipsp.uni-hohenheim.de
+cd /work/workspaces/flavio/paniclesimgs
+
+screen
+jupyter notebook --no-browser --port=8080
+
+# Detaching a Screen > ctrl + a + d
+```
+
+> On local machine (open jupyter remotely)
+
+```{git}
+ssh -L 8080:localhost:8080 flaaw57@server231.ipsp.uni-hohenheim.de
+cd /work/workspaces/flavio/paniclesimgs/
+
+cd /work/workspaces/quinoa-image-analysis/2-quinoa-panicle-maskrcnn/
+
+#  find . -name 'EfficientNetB0_1_2_*' -delete
+```
+
+Open: <http://localhost:7070/>
+
+
+```{bash}
+scp -r flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/quinoa-image-analysis/2-quinoa-panicle-maskrcnn/0-quinoa-panicle-stacked/1-segmentation-part/ xclude
+```
+
+- Re-connect screen process
+
+```{git}
+screen -ls
+screen -r 76039
+# 
+#> Detaching a Screen > ctrl + a + d
+```
+
+> Check/Stop running process 
+
+```{git}
+ls -l
+date
+#>
+ps -aux
+ps aux | grep jupyter
+# kill 169327
+```
+
+# Use R on server connected to local
+
+Source: <https://stackoverflow.com/questions/56828327/running-r-code-via-rstudio-on-a-remote-server-not-by-browser>
+
+- Download the last version of R
+
+Source: <https://docs.posit.co/resources/install-r-source/>
+
+```{git}
+wget https://sourceforge.net/projects/libpng/files/libpng16/1.6.37/libpng-1.6.37.tar.gz
+
+tar xvf libpng-1.6.37.tar.gz
+cd libpng-1.6.37/
+./configure
+make
+make install
+
+```
+
+
+```{git}
+cd /work/workspaces/flavio/
+ls
+dnf builddep R
+curl -O https://cran.rstudio.com/src/base/R-4/R-4.2.2.tar.gz
+tar -xzvf R-4.2.2.tar.gz
+cd R-4.2.2
+./configure \
+    --prefix=/opt/R/R-4.2.2\
+    --enable-R-shlib \
+    --enable-memory-profiling
+    --with-readline=no --with-x=no
+make && make install
+```
+
+Install `remoter` in local and server
+
+```{r}
+R
+install.packages("remoter")
+```
+
+## On server
+
+```{git}
+ssh flaaw57@server231.ipsp.uni-hohenheim.de
+cd /work/workspaces/flavio/modelacc
+```
+
+```{r}
+remoter::server( showmsg = TRUE )
+```
+
+## On local
+
+```{r}
+remoter::client()
+```
+
+
+# Model accruracy performance
+
+- On server
+
+```{git}
+cd /work/workspaces/flavio/modelacc
+ls -l -R > quinoa-panicles_classification-model_accuracy_results.txt 
+# nano quinoa-panicles_classification-model_accuracy_results.txt 
+```
+
+## Download file with accuracy information
+
+```{git}
+scp -r flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/modelacc/quinoa-panicles_classification-model_accuracy_results.txt C:/Users/floza/git/quino-img-analysis/2-stage-approach/2-classification-part/
+```
+
+## Best model classification accuracy
+
+```{r}
+source('https://inkaverse.com/setup.r')
+library(lme4)
+library(emmeans) 
+library(multcomp)
+
+#> import ls file
+
+infotxt <- list.files(recursive = T, full.names = T, pattern = "classification-model_accuracy_results.txt")
+
+accclass <- infotxt %>% 
+  read.delim2(header = F, sep = "") %>% 
+  dplyr::select(V6:V9) %>% 
+  set_names("mm", "dd", "hh", "model") %>% 
+  dplyr::filter(str_detect(model, ".h5")) %>% 
+  separate("model"
+           , c("architecture", "loss", "learning_rate", "epochs", "rep", "acc")
+           , sep = "-") %>% 
+  mutate(across(acc, ~gsub(".h5", "", .))) %>% 
+  mutate(across(c(acc, epochs, learning_rate), as.numeric)) %>% 
+  mutate(across(c(architecture, learning_rate, epochs, rep), as.factor)) 
+
+#> number of reps by treatments
+
+reps <- accclass %>% 
+  group_by(architecture, learning_rate, epochs) %>% 
+  summarise(n = n())
+
+#> data srt
+
+accclass %>% str()
+accclass %>% names()
+
+#> model analysis
+
+lm <- accclass %>% 
+  # lme4::lmer(acc ~ (1|rep) + architecture*learning_rate*epochs, .)
+  lm(acc ~ architecture*learning_rate*epochs, data = .)
+
+anova(lm)
+
+car::Anova(lm,type="III", singular.ok = TRUE)
+
+mc <- emmeans(lm, ~ epochs | learning_rate | architecture) %>% 
+  cld(Letters = letters, reversed = T)
+
+mc
+
+plot <- mc %>% 
+  plot_smr(type = "line"
+           , x = "epochs"
+           , y = "emmean"
+           , ylab = "Accuracy ('%')"
+           , group = "learning_rate" 
+           , sig = ".group"
+           # , error = "SE"
+           , ylimits = c(50, 100, 10)
+           ) +
+  facet_grid(. ~ architecture)
+
+plot
+
+plot %>% 
+  ggsave2(plot = .
+          , filename = "C:/Users/floza/git/quino-img-analysis/2-stage-approach/2-classification-part/model_accuracy-1.pdf", width = 25, height = 15, units = "cm")
+
+#> model reduction
+
+lm <- accclass %>% 
+  lm(acc ~ architecture*epochs, data = .)
+
+anova(lm)
+
+car::Anova(lm,type="III", singular.ok = TRUE)
+
+mc <- emmeans(lm, ~ epochs | architecture) %>% 
+  cld(Letters = letters, reversed = T)
+
+mc
+
+plot <- mc %>% 
+  plot_smr(type = "line"
+           , x = "epochs"
+           , y = "emmean"
+           , ylab = "Accuracy ('%')"
+           , group = "architecture" 
+           , sig = ".group"
+           # , error = "SE"
+           , ylimits = c(50, 100, 10)
+           ) 
+plot
+
+plot %>% 
+  ggsave2(plot = .
+          , filename = "C:/Users/floza/git/quino-img-analysis/2-stage-approach/2-classification-part/model_accuracy-2.pdf", width = 25, height = 15, units = "cm")
+```
+
+
+# Model segementation
+
+## Upload date to server
+
+```{bash}
+scp -r C:/Users/floza/git/quino-img-analysis/xclude/segmentation flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/
+```
+
+## Open jnb
+
+```{bash}
+ssh flaaw57@server231.ipsp.uni-hohenheim.de
+cd /work/workspaces/flavio/
+
+screen
+jupyter notebook --no-browser --port=7070
+# Detaching a Screen > ctrl + a + d
+```
+
+> On local machine (open jupyter remotely)
+
+```{git}
+ssh -L 7070:localhost:7070 flaaw57@server231.ipsp.uni-hohenheim.de
+cd /work/workspaces/flavio/classification
+
+# /work/workspaces/flavio/classification/VGG16_3_200_best-model_0.9394.h5
+
+
+#  find . -name '3-resnet50-classifier-panicle-model-training.ipynb*' -delete
+```
+
+<http://localhost:7070/>
+
+
+#> extra code
+
+# Training model picture download
+
+```{r, eval=FALSE}
+flist <- "02_annotation/two_stages/" %>% 
+  list.files(full.names = T, pattern = "csv")
+  
+fmodel <- 1:length(flist) %>% map(\(x) {
+  
+  fnames <- flist[[x]] %>% 
+    gsub(".*panicles_(.*)_2022.*", replacement = "\\1", .)
+  
+  read.csv(file = flist[[x]]) %>% 
+    mutate(folder = fnames)
+  
+}) %>% 
+  bind_rows() %>% 
+  select(filename, folder) %>% 
+  distinct(filename, folder) %>% 
+  mutate(url = gsub("[[:blank:]]", "%20",filename))
+
+fmodel %>% 
+  group_by(folder) %>% 
+  summarise(n = n())
+
+newdir <- "gitignore/model_training"
+
+dir.create(newdir)
+dir.create(file.path(newdir, "train"))
+dir.create(file.path(newdir, "test"))
+
+download <- 1:nrow(fmodel) %>% map(\(x) {
+  
+  download.file(url = fmodel[["url"]][x]
+                , destfile = file.path(newdir
+                                       , fmodel[["folder"]][x]
+                                       , basename(fmodel[["filename"]][x])
+                                       )
+                , mode = "wb"
+                )
+  
+})
+
+```
+
+## Upload images to server
+
+```{sh eval=FALSE}
+ssh flaaw57@server231.ipsp.uni-hohenheim.de
+cd /work/workspaces/flavio/lydia_panicles
+cd /work/workspaces/quinoa-image-analysis/
+
+scp gitignore/model_training.zip flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/quinoa-image-analysis/
+
+mv /work/workspaces/flavio/lydia_panicles/model_training.zip /work/workspaces/quinoa-image-analysis/
+
+```
+
+> (server > pictures) `/work/workspaces/flavio/lydia_panicles/model_training.zip`
+> (gitlab > annotation) `/quino-img-analysis/02_annotation/two_stages/quinoa_panicles_[X]_2022-09-07.json`
+
+## Mutate via files
+
+```{r eval=FALSE}
+flist <- "02_annotation/two_stages/" %>% 
+  list.files(full.names = T, pattern = "csv")
+
+anntest <- flist[[1]] %>% 
+  read.csv() %>% 
+  mutate(filename = basename(filename)) %>% 
+  # mutate(across(region_attributes, ~gsub("classes", "name", .x))) %>% 
+  write_csv("02_annotation/two_stages/quinoa_panicles_test_2022-09-07_basename.csv") 
+  
+anntrain <- flist[[2]] %>% 
+  read.csv() %>% 
+  mutate(filename = basename(filename)) %>% 
+  # mutate(across(region_attributes, ~gsub("classes", "name", .x))) %>% 
+  write_csv("02_annotation/two_stages/quinoa_panicles_train_2022-09-07_basename.csv") 
+```
+
+## Move files from segmentation results to classification
+
+```{bash}
+cp -r /work/workspaces/quinoa-image-analysis/2-quinoa-panicle-maskrcnn/0-quinoa-panicle-stacked/1-segmentation-part/ /work/workspaces/flavio/classification/segmentation-results
+```
+
+

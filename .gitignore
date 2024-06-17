@@ -47,3 +47,9 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+xclude
+gitignore
+*.h5
+*.sh
+*.gz

@@ -1,0 +1,7 @@
+1. Install Plugins (Plugins > Install): https://imagej.nih.gov/ij/plugins/rgb-measure.html
+2. Select the panicle area
+3. Set measurements: Area, Perimeter, Bounding rectangle, Mean gay value, Modal gray value, Standart deviation
+	- Display label, Limit to threshold
+4. Plugins > RBG measure
+5. Get 3 values per image: 1 ~ R, 2 ~ G, 3 ~ B
+6. Evaluate the images two times

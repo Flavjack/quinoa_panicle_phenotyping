@@ -1,0 +1,5 @@
+	model	mAP @ IoU=.5.95
+0	mask_rcnn_maize_0008.h5	0.5633333333333334
+1	mask_rcnn_maize_0015.h5	0.14666666666666667
+2	mask_rcnn_maize_0001.h5	0.01
+3	mask_rcnn_maize_0003.h5	0.37833333333333324

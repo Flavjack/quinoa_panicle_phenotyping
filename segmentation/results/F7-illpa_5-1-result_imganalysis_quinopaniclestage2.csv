@@ -1,0 +1,2 @@
+img_folder,img_name,img_qrcode,img_res,scale_pixelpercm2,scale_RGB_R,scale_RGB_G,scale_RGB_B,scale_amount,scale_median,scale_mean,scale_std,scale_min,scale_max,panicle_detected,panicle_number,panicle_width,panicle_length,panicle_area,panicle_shape,panicle_RGB_mean,panicle_RGB_stdev
+F7-illpa_5,IMG_20180314_161157.jpg,NA,2560:1920,,,,,,,,,,,1.0,1.0,538.0,1868.0,1535778.0,,123.39:135.21:77.95,51.78:45.94:41.85

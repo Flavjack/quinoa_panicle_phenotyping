@@ -1,0 +1,1651 @@
+---
+title: "A high-throughput phenotyping pipeline for quinoa (Chenopodium quinoa) panicles using image analysis with convolutional neural networks"
+format:
+  html:
+    toc: true
+    toc-location: left
+    number-sections: true
+    self-contained: true
+    output-file: "ESM_1"
+editor_options: 
+  chunk_output_type: console
+execute: 
+  warning: false
+  echo: true
+---
+
+# Setup
+
+```{r}
+#| label:  setup
+
+source('https://inkaverse.com/setup.r')
+library(readxl)
+
+session_info()
+```
+
+# Googlesheets connect
+
+```{r}
+url <- "https://docs.google.com/spreadsheets/d/1ywk2jhCKRKy_9-8pH9LPjBN8jmfMr_6ofBB7NY0WY5Y"
+# browseURL(gsh)
+gs <- as_sheets_id(url)
+```
+
+# Import pipeline results
+
+Import result from the serve
+
+## Classification
+
+```{bash}
+#| eval: false
+
+ssh flaaw57@server231.ipsp.uni-hohenheim.de
+cd /work/workspaces/flavio/segmentation/img-segmented/1-segmentation-part
+
+cp -r /work/workspaces/quinoa-image-analysis/2-quinoa-panicle-maskrcnn/0-quinoa-panicle-stacked/1-segmentation-part/ /work/workspaces/flavio/segmentation/img-segmented
+```
+
+Import result to local
+
+```{bash}
+#| eval: false
+
+cd /work/workspaces/flavio/segmentation/img-segmented/1-segmentation-part/
+
+scp -r flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/segmentation/img-segmented/1-segmentation-part/classification_prediction.csv 2-stage-approach/2-classification-part/
+```
+
+```{r}
+rs_cla <- list.files(path = "classification", pattern = "classification_prediction.csv"
+                     , recursive = T, full.names = T) %>% 
+  read_csv() %>% 
+  mutate(info = gsub("^.*part\\/", "", Imagen)) %>% 
+  separate(info, c("img_folder", "type", "image"), sep = "/") %>% 
+  separate(image, c("img_name", "panicle_number"), sep = "_panicle_") %>% 
+  mutate(panicle_number = gsub("\\D", "", panicle_number)) %>% 
+  separate(img_folder, c("img_folder", "nfolder"), sep = "_")
+
+rs_cla$img_folder %>% unique() %>% sort()
+```
+
+### Classiciation pipeline
+
+- Server: quino-img-analysis/2-stage-approach/2-classification-part/classification_quinoa-panicles.ipynb
+- Local: classification/quinoa-panicles_classification-model_accuracy.ipynb
+
+## Segementation
+
+Import result from the serve
+
+```{bash}
+#| eval: false
+
+ssh flaaw57@server231.ipsp.uni-hohenheim.de
+
+find /work/workspaces/flavio/segmentation/results/ -name "*.csv" -exec cp {} /work/workspaces/flavio/segmentation/results/csvresults/ \;
+
+cd /work/workspaces/flavio/segmentation/results/csvresults
+
+scp -r flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/segmentation/results/csvresults/ 2-stage-approach/1-segmentation-part/result-final/
+
+```
+
+
+```{git}
+#| eval: false
+
+ssh flaaw57@server231.ipsp.uni-hohenheim.de
+cd /work/workspaces/quinoa-image-analysis/2-quinoa-panicle-maskrcnn/0-quinoa-panicle-stacked/1-segmentation-part
+
+scp -r flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/quinoa-image-analysis/2-quinoa-panicle-maskrcnn/0-quinoa-panicle-stacked/1-segmentation-part/F7-illpa_3 xclude
+
+scp -r flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/quinoa-image-analysis/2-quinoa-panicle-maskrcnn/0-quinoa-panicle-stacked/1-segmentation-part/F7-illpa_4 xclude
+
+scp -r flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/quinoa-image-analysis/2-quinoa-panicle-maskrcnn/0-quinoa-panicle-stacked/1-segmentation-part/F7-illpa_5 xclude
+
+scp -r flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/quinoa-image-analysis/2-quinoa-panicle-maskrcnn/0-quinoa-panicle-stacked/1-segmentation-part/F8-camacani_1 xclude
+
+scp -r flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/quinoa-image-analysis/2-quinoa-panicle-maskrcnn/0-quinoa-panicle-stacked/1-segmentation-part/F8-illpa xclude
+
+scp -r flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/quinoa-image-analysis/2-quinoa-panicle-maskrcnn/0-quinoa-panicle-stacked/1-segmentation-part/scale-images_1 xclude
+```
+
+- Copy results in csv to git project
+
+Manual rename folder scale-images_1 > F9-camamacani_1
+
+```{r}
+#| eval: false
+
+seg.files <- list.files("xclude/", pattern = ".csv"
+                        , recursive = T, full.names = T)
+
+cp <- 1:length(seg.files) %>% 
+  map(\(x) {
+    
+    opath <- seg.files[x]
+    
+    dir <-  gsub(".*/([^/]+)/.*", "\\1", opath)
+    
+    fname <- basename(opath)
+    
+    file.copy(from = opath
+              , to = file.path("2-stage-approach/1-segmentation-part/results/"
+                               , paste0(dir, "-", fname)))
+  })
+```
+
+```{r}
+seg.files <- list.files("segmentation/results/", pattern = ".*result.*.csv"
+                        , recursive = T, full.names = T)
+
+rs_seg <- 1:length(seg.files) %>% map( \(x) {
+  
+  seg.files[x] %>% 
+    read.csv()
+  
+}) %>% 
+  bind_rows() %>% 
+  separate(img_folder, c("img_folder", "nfolder"), sep = "_")
+  
+rs_seg$img_folder %>% unique() %>% sort()
+```
+
+### Classiciation pipeline
+
+- Lydia (missing)
+
+## Merge data: segmentation + classification
+
+```{r}
+rs_cla %>% names()
+rs_seg %>% names()
+
+rs <- rs_cla %>% 
+  merge(rs_seg, by = c("img_folder", "img_name", "panicle_number")) %>% 
+  dplyr::select(!c(panicle_shape, starts_with("nfolder"))) %>% 
+  rename(panicle_shape = "Clase") %>% 
+  mutate(img_folder = gsub("\\_[0-9]+$", "", img_folder)) %>% 
+  separate(panicle_RGB_mean, c("panicle_R_mean", "panicle_G_mean", "panicle_B_mean"), sep = ":") %>% 
+  separate(panicle_RGB_stdev, c("panicle_R_stdev", "panicle_G_stdev", "panicle_B_stdev"), sep = ":") %>% 
+  mutate(`panicle_length.width` = panicle_length/panicle_width) %>% 
+  mutate(`panicle_width.length` = panicle_width/panicle_length)
+
+rs %>% names()
+rs$img_folder %>% unique()
+```
+
+```{r}
+rs %>% 
+  web_table(caption = "Classification and Segementation results")
+```
+
+## Model classification accurary
+
+```{bash}
+#| eval: false
+
+ssh flaaw57@server231.ipsp.uni-hohenheim.de
+cd /work/workspaces/flavio/classification
+cd /work/workspaces/flavio/paniclesimgs
+```
+
+Activate Remote jupyeter notebook
+
+```{bash}
+#| eval: false
+
+screen
+jupyter notebook --no-browser --port=8080
+# Detaching a Screen > ctrl + a + d
+
+ssh -L 8080:localhost:8080 flaaw57@server231.ipsp.uni-hohenheim.de
+```
+
+Open: <http://localhost:8080/>
+
+> Check/Stop running process 
+
+```{bash}
+#| eval: false
+
+screen -ls
+screen -r 47624
+# 
+#> Detaching a Screen > ctrl + a + d
+```
+
+```{bash}
+#| eval: false
+
+ps aux | grep jupyter
+# kill 27247
+```
+
+Save the result as .txt file and download to git repository
+
+```{bash}
+#| eval: false
+
+ssh flaaw57@server231.ipsp.uni-hohenheim.de
+cd /work/workspaces/flavio/classification
+
+ls > models_classification.txt
+
+scp -r flaaw57@server231.ipsp.uni-hohenheim.de:/work/workspaces/flavio/classification/models_classification.txt 2-stage-approach/2-classification-part/
+```
+
+```{r}
+mdl_class_info <- gs %>% 
+  range_read("ModelClass") %>% 
+  rename_with(~ tolower(gsub(".", "_", .x, fixed = TRUE)))
+
+mdl_class <- list.files("classification"
+                        , pattern = ".*models_classification.*.txt"
+                        , recursive = T, full.names = T) %>% 
+  read.delim(header = F) %>% 
+  rename(files = V1) %>% 
+  filter(str_detect(files, pattern = "best-model")) %>%
+  mutate(across(everything(), ~gsub(".h5", "", .))) %>% 
+  separate(files, c("architecture", "num", "epoch", "type", "accuracy"), sep = "_") %>% 
+  merge(., mdl_class_info, by = c("architecture", "num"))
+```
+
+# Manuscript
+
+# Table 1
+
+```{r}
+sheet <- gs %>% 
+  range_read("albums") 
+
+tab <- sheet %>%
+  filter(stage %in% "flowering" & type %in% "panicles") %>% 
+  dplyr::select(contains(c("seas", "geno", "gene", "loc", "design", "dev", "res"))) %>% 
+  add_column(Pictures = c(3862, 1240, 25, 24))
+
+tab %>%
+  web_table()
+
+# tab %>% write_sheet(ss = gs, sheet = "tab1")
+```
+
+# Figure 1
+
+```{r}
+variation <- list.files(path = "annotation/variation"
+                    , pattern = "jpg"
+                    , recursive = T
+                    , full.names = T
+                    ) %>% 
+  enframe(name = "img", value = "path") %>% 
+  mutate(name = unglue::unglue_vec(path, "{}variation/{x}.jpg{}")) %>% 
+  separate(name, c("name", "num"), sep = "_") %>% 
+  mutate(group = case_when(
+    str_detect(name, "damage|blurred|dry") ~ "excluded"
+    , TRUE ~ "variation"
+  )) %>% 
+  mutate(plot = paste0("rasterGrob(image_read(","'", path,"'",") %>%  image_resize(., '400x550!'))")) %>% 
+  arrange(desc(group)) %>% 
+  mutate(name = gsub("-", " ", name))
+
+rcd <- list("background brigtness" = "background brightness"
+            , "presence of leaves" = "leaves within panicles"
+            , "over dry panicles" = "overly dry images"
+            )
+
+var <- variation %>% 
+  filter(group %in% "variation") %>% 
+  mutate(across(name, ~ dplyr::recode(., !!!rcd))) %>% 
+  mutate(across(name, ~ str_to_title(.)))
+  
+
+plot1 <- 1:length(unique(var$name)) %>% map(function(x) {
+  
+  names <- unique(var$name)[x]
+  
+  grid <- var %>% 
+    filter(name %in% names) %>% 
+    select(plot) %>% 
+    deframe()
+  
+  list <- 1:length(grid) %>% map(function(y) {
+    
+     eval(parse(text = grid[y]))
+    
+  }) %>% 
+    plot_grid(plotlist = .
+            , ncol = 2
+            , labels = c("", names)
+            , label_x = -0.35
+            , label_y = 1.02
+            , label_size = 25
+            , hjust = 0
+            , vjust = 0
+            ) +
+    theme(plot.margin = unit(c(1, 0.2, 0, 0), "cm")) 
+  
+}) %>% 
+  plot_grid(plotlist = . 
+            , nrow =  2
+            ) +
+  theme(plot.margin = unit(c(1, 0, 0, 0), "cm")) 
+
+var <- variation %>% 
+  filter(group %in% "excluded") %>% 
+  mutate(across(name, ~ dplyr::recode(., !!!rcd))) %>% 
+  mutate(across(name, ~str_to_title(.)))
+
+plot2 <- 1:length(unique(var$name)) %>% map(function(x) {
+  
+  names <- unique(var$name)[x]
+  
+  grid <- var %>% 
+    filter(name %in% names) %>% 
+    select(plot) %>% 
+    deframe()
+  
+  list <- 1:length(grid) %>% map(function(y) {
+    
+     eval(parse(text = grid[y]))
+    
+  }) %>% 
+    plot_grid(plotlist = .
+            , ncol = 2
+            , labels = c("", names)
+            , label_x = -0.35
+            , label_y = 1.02
+            , label_size = 25
+            , hjust = 0
+            , vjust = 0
+            ) +
+     theme(plot.margin = unit(c(1, 0.2, 0, 0), "cm")) 
+  
+}) %>% 
+  plot_grid(plotlist = . , nrow =  1) +
+  theme(plot.margin = unit(c(1, 0, 0, 0), "cm")) 
+
+plot <- plot_grid(plot1, plot2
+          , nrow = 2
+          , labels = c("(a) Variation among images", "(b) Excluded images")
+          , rel_heights = c(2, 1)
+          , hjust = -0.02
+          , vjust = 1.1
+          , label_size = 25
+          ) 
+
+plot %>% 
+    ggsave2(filename = "files/Fig1.jpg"
+          , plot = .
+          , dpi = 200
+          , width = 19.5
+          , height = 15
+          )
+
+plot %>% 
+    ggsave2(filename = "files/Fig1.eps"
+          , plot = .
+          , dpi = 200
+          , width = 19.5
+          , height = 15
+          )
+
+include_graphics("files/Fig1.jpg")
+```
+
+# Table 2
+
+```{r}
+tab <- "model-predictions/model-result-detections/models.xlsx" %>% 
+  readxl::read_xlsx() %>%
+  mutate(`mask-resolution` = case_when(
+    `mask-resolution` == "64x64" ~ "56x56"
+    , `mask-resolution` == "32x32" ~ "28x28"
+    , TRUE ~ `mask-resolution`
+  )) %>% 
+  rename(Model = model
+         , `imgaug` = `image-augmentation`
+         , `mask resolution` = `mask-resolution`
+         , `loss weight` = `loss-weight`
+         , `heads.m` = layers
+         ) 
+
+tab %>%
+  web_table()
+
+# tab %>% write_sheet(ss = gs, sheet = "tab2")
+```
+
+# Figure 2
+
+## ModelSeg
+
+```{r}
+library(car)
+options(contrasts=c(unordered="contr.sum",ordered="contr.poly"))
+
+files <- list.files("segmentation/statistical-analysis/"
+                    , pattern = "param.xlsx"
+                    , full.names = T
+                    , recursive = T
+                    )
+
+ap595 <- files %>% 
+  readxl::read_xlsx(sheet = 2) %>% 
+  mutate(across(1:binac_code, ~as.factor(.))) %>% 
+  select(model = modeltype, loss, heads.m, mask_resolution, ap595) %>% 
+  mutate(model = paste0("segmentation-", model))
+
+# ap595 %>% write_sheet(gs, data = ., sheet = "stab1.0")
+
+model <- ap595 %>% 
+  lm(ap595 ~ loss*heads.m*mask_resolution, data = .)
+
+Anova(model, type="III",singular.ok = TRUE)
+av <- anova(model)
+
+tb <- Anova(model, type="III",singular.ok = TRUE) %>% 
+  as.data.frame() %>% 
+  rownames_to_column("Factor") %>% 
+      mutate(Sig = case_when(
+        `Pr(>F)` <= 0.001  ~ "***"
+        , `Pr(>F)` <= 0.01  ~ "**"
+        , `Pr(>F)` <= 0.05  ~ "*"
+        , `Pr(>F)` > 0.05 ~ "ns"
+      )) %>% 
+  tibble() %>% 
+  tibble::add_row(Factor = "---") %>%
+  tibble::add_row(Factor = "Significance:") %>% 
+  tibble::add_row(Factor = "0.001 '***' 0.01 '**' 0.05 '*'") 
+  
+
+# tb %>% write_sheet(ss = gs, sheet = "ModelSegAOV")
+
+mc <- emmeans::emmeans(model, ~ loss | mask_resolution | heads.m ) %>% 
+  multcomp::cld(Letters = letters, reversed = T) %>% 
+  tibble()
+
+# sqrt(tail(av$`Mean Sq`, 1))/mean(mc$emmean)*100
+
+# mc %>% write_sheet(ss = gs, sheet = "ModelSeg")
+
+plot1 <- mc %>% 
+  plot_smr(type = "bar"
+           , x = "loss"
+           , xlab = "Loss weight" 
+           , y = "emmean"
+           , ylimits = c(0, 1.1, 0.1)
+           , ylab = "mAP"
+           , group = "mask_resolution"
+           , glab = "Mask resolution"
+           , sig = ".group"
+           # , error = "SE"
+           ) +
+  facet_wrap(. ~ heads.m, ncol = 3) +
+  theme(legend.position.inside = c(0.15, 0.97)
+        , legend.direction = "horizontal"
+        , strip.text = element_text(size = 12)
+        , axis.text.x = element_text(size = 10)
+        )
+
+tab <- mc %>% 
+  tibble() %>% 
+  rename("loss weight" = "loss", "mask resolution" = "mask_resolution") %>% 
+  mutate(Model = paste0("segmentation-", row_number()), .before = `loss weight`)
+
+# tab %>% 
+#   mutate(across(where(is.numeric), ~round(., 3))) %>% 
+#   select(!c(df, lower.CL, upper.CL)) %>% 
+#   rename(ste = "SE", sig = ".group", ap595 = "emmean") %>% 
+#   mutate(across(sig, ~trimws(.))) %>% 
+#   write_sheet(ss = gs, sheet = "tab2") 
+```
+
+## ModelClass
+
+```{r}
+library(car)
+options(contrasts=c(unordered="contr.sum",ordered="contr.poly"))
+
+model <- mdl_class %>% 
+  lm(accuracy ~ architecture*`dense layers`*`activation function`, data = .)
+
+# mdl_class %>% write_sheet(gs, data = ., sheet = "stab2.0")
+
+Anova(model, type="III", singular.ok = TRUE)
+anova(model)
+
+tb <- Anova(model, type="III",singular.ok = TRUE) %>% 
+  as.data.frame() %>% 
+  rownames_to_column("Factor") %>% 
+      mutate(Sig = case_when(
+        `Pr(>F)` <= 0.001  ~ "***"
+        , `Pr(>F)` <= 0.01  ~ "**"
+        , `Pr(>F)` <= 0.05  ~ "*"
+        , `Pr(>F)` > 0.05 ~ "ns"
+      )) %>% 
+  tibble() %>% 
+  tibble::add_row(Factor = "---") %>%
+  tibble::add_row(Factor = "Significance:") %>% 
+  tibble::add_row(Factor = "0.001 '***' 0.01 '**' 0.05 '*'") 
+  
+# tb %>% write_sheet(ss = gs, sheet = "ModelClasAOV")
+
+mc <- emmeans::emmeans(model, ~ architecture*`dense layers`*`activation function`) %>% 
+  multcomp::cld(Letters = letters, reversed = T)
+
+mc
+
+# mc %>% write_sheet(ss = gs, sheet = "ModelClass")
+
+plot2 <- mc %>% 
+  plot_smr(type = "bar"
+           , x = "architecture"
+           , xlab = "Architecture" 
+           , y = "emmean"
+           , ylimits = c(0, 1.1, 0.2)
+           , ylab = "Accuracy prediction"
+           , group = "dense layers"
+           , glab = "Dense layers"
+           , sig = ".group"
+           # , error = "SE"
+           ) +
+  facet_wrap(. ~ `activation function`, ncol = 3) +
+  theme(legend.position = c(0.15, 0.97)
+        , legend.direction = "horizontal"
+        , strip.text = element_text(size = 12)
+        , axis.text.x = element_text(size = 9)
+        )
+
+tab <-  mc %>% 
+  merge(., mdl_class_info, by = c("architecture", "dense layers", "activation function"), all.x = )
+
+# tab %>% 
+#   mutate(across(where(is.numeric), ~round(., 3))) %>% 
+#   select(model, everything()) %>% 
+#   select(!c(df, lower.CL, upper.CL, num)) %>% 
+#   rename(Model = "model"
+#          , ste = "SE", sig = ".group", accuracy = "emmean") %>% 
+#   mutate(across(sig, ~trimws(.))) %>% 
+#   arrange(Model) %>% 
+#   write_sheet(ss = gs, sheet = "tab3") 
+```
+
+```{r}
+#| eval: false
+
+plot <- plot_grid(plot1, plot2
+                  , ncol = 1
+                  , labels = "auto"
+                  ) 
+
+plot %>% 
+  ggsave2(filename = "files/Fig2.jpg"
+          , plot = .
+          , dpi = 300
+          , width = 10
+          , height = 8
+          )
+
+include_graphics("files/Fig2.jpg")
+```
+
+# Figure 2 (pipeline)
+
+```{r}
+up <- 1
+
+figure <- label_layout(size = c(20, 26), border_color = NULL) %>% 
+  # include_text(value = "PhenomQuinoa", size = 20, position = c(10, 25.5)) %>% 
+  include_text(value = "(a) Panicle images", size = 16, position = c(5, 24.5 + up)) %>% 
+  include_image(value = "annotation/pipeline/orig_ATP.jpg"
+                , position = c(3.5, 22 + up) , size = c(2.5, 4)
+                ) %>% 
+  include_image(value = "annotation/pipeline/orig_amaranth.jpg"
+                , position = c(6.2, 22 + up) , size = c(3, 4)
+                ) %>% 
+  include_image(value = "annotation/pipeline/arrow.png"
+                , position = c(10, 22 + up), size = c(1.2, 1.2)
+                , opts = "image_rotate(90)*image_flop()"
+                ) %>% 
+  include_text(value = "(b) Image annotation", size = 16, position = c(15, 24.5 + up)) %>% 
+  include_image(value = "annotation/pipeline/annotation.png"
+                , position = c(15, 22 + up), size = c(5, 5)
+                ) %>% 
+  include_image(value = "annotation/pipeline/arrow.png"
+                , position = c(15, 19 + up), size = c(1.2, 1.2)
+                , opts = "image_rotate(0)*image_flop()"
+                ) %>% 
+  include_text(value = "(c) Segmentation model training:\n16 models", size = 16, position = c(15, 17.7 + up)) %>% 
+  include_image(value = "annotation/pipeline/model.png"
+                , position = c(15, 15 + up), size = c(6.5, 6.5)
+                ) %>% 
+  include_image(value = "annotation/pipeline/arrow.png"
+                , position = c(10, 15 + up), size = c(1.2, 1.2)
+                , opts = "image_rotate(-90)*image_flop()"
+                ) %>% 
+  include_text(value = "(d) Best segmentation model\n(segmentation-09)", size = 15, position = c(5, 17.7 + up)) %>% 
+  include_image(value = "annotation/pipeline/mseg_ATP.jpg"
+                , position = c(3.5, 15 + up)
+                , size = c(2.5, 4)
+                ) %>% 
+  include_text(value = "Panicle traits:\n- Lenght\n- Width\n- Area\n- RGB values\n- Indices"
+             , size = 12, position = c(5, 15 + up), opts = list(hjust = 0, vjust = 0)) %>% 
+  include_image(value = "annotation/pipeline/arrow.png"
+              , position = c(5, 12 + up)
+              , size = c(1.2, 1.2), opts = "image_rotate(0)*image_flop()"
+              ) %>% 
+  include_text(value = "(e) Classification model training:\n12 models", size = 16, position = c(5, 10.7 + up)) %>% 
+  include_image(value = "annotation/pipeline/model.png"
+                , position = c(5, 7.7 + up), size = c(6.5, 6.5)
+                ) %>% 
+  include_image(value = "annotation/pipeline/arrow.png"
+                , position = c(10, 7.7 + up), size = c(1.2, 1.2)
+                , opts = "image_rotate(90)*image_flop()"
+                ) %>% 
+  include_text(value = "(f) Best classification model\n(classification-08)", size = 16, position = c(15, 10.8 + up)) %>% 
+  include_image(value = "annotation/pipeline/mclass_ATP.jpg"
+                , position = c(14, 7.8 + up)
+                , size = c(2.5, 4)
+                ) %>% 
+  include_text(value = "Panicle shape:\n- Glomerulate\n- Amarantiform"
+               , size = 12, position = c(15.5, 7.8 + up), opts = list(hjust = 0, vjust = 0)) %>% 
+  include_text(value = "(g) Phenotyping\n(merge data)", size = 16, position = c(10, 6.5)) %>% 
+  include_image(value = "annotation/pipeline/marrow.png"
+            , position = c(10, 4.0)
+            , size = c(3, 3), opts = 'image_transparent("white")'
+            ) %>% 
+  include_text(value = "(h) Analysis", size = 16, position = c(10, 2.3)) %>% 
+  include_text(value = "- Genetic parameters\n- Heritability\n- QTL mapping*\n- GWAS*"
+             , size = 12, position = c(8.5, 0.9), opts = list(hjust = 0, vjust = 0))
+  
+figure %>% label_print()
+  
+fig <- figure %>% 
+  label_print(filename = "files/Fig2", mode = "c")
+```
+
+# ModelSeg vs. ImageJ 
+
+```{r}
+imgj <- gs %>% 
+  range_read("imagej") %>% 
+  dplyr::mutate(across(everything(), as.character)) %>% 
+  dplyr::mutate(rgb = dplyr::case_when(
+    rgb == "1" ~ "R"
+    , rgb == "2" ~ "G"
+    , rgb  == "3" ~ "B"
+  )) %>% 
+  pivot_longer(!c(1:3)) %>% 
+  mutate(name = case_when(
+    name %in% "mean" ~ paste("panicle", rgb, name, sep = "_")
+    , name %in% "stdev" ~ paste("panicle", rgb, name, sep = "_")
+    , name %in% "mode" ~ paste("panicle", rgb, name, sep = "_")
+    , TRUE ~ name
+  )) %>% 
+  mutate(value = case_when(
+    rgb %in% "R" & name %in% c("panicle_area", "perimeter", "BX", "BY", "panicle_width", "panicle_length", "panicle_shape") ~ value
+    , str_detect(name, "mean|stdev|mode") ~ value
+  )) %>% 
+  drop_na(value) %>% 
+  dplyr::select(!rgb) %>% 
+  pivot_wider() %>% 
+  mutate(panicle_shape = case_when(
+    panicle_shape %in% "amaranth" ~ 1
+    , panicle_shape %in% "glomerulate" ~ 0
+  )) %>%
+  rename_with(~ gsub("panicle_", "imagej\n", .)) %>%
+  dplyr::select(img_folder, img_name, starts_with("imagej"))
+  
+seg <- rs %>% 
+  dplyr::select(img_folder, img_name, starts_with("panicle")) %>% 
+  mutate(panicle_shape = case_when(
+    panicle_shape %in% "amaranth" ~ 1
+    , panicle_shape %in% "glomerulate" ~ 0
+  )) %>% 
+  rename_with(~ gsub("panicle_", "model\n", .))
+
+comp <- merge(imgj, seg, all.x = T) %>% 
+  mutate(across(everything(), as.character)) %>% 
+  pivot_longer(!c(1:2)) %>% 
+  separate(name, c("type", "trait"), sep = "\n") %>% 
+  arrange(trait) %>% 
+  unite(name, c(type, trait), sep = "\n") %>% 
+  mutate(value = case_when(
+    value %in% "glomerulate" ~ "0"
+    , value %in% "amaranth" ~ "1"
+    , TRUE ~ as.character(value)
+  )) %>% 
+  mutate(across( value, as.numeric)) %>% 
+  pivot_wider() %>% 
+  dplyr::select(!matches("number|_mode|detected|width.length|length.width"))
+```
+
+# Trait correlation
+
+```{r}
+library(ROCR)
+
+predt <- comp %>% 
+  rename_with(~ gsub("\n", " ", .)) %>% 
+  select(contains("shape")) %>% 
+  drop_na(`model shape`)
+
+pred <- prediction(predictions = predt$`model shape`
+                  , labels = predt$`imagej shape`)
+
+perf1 <- performance(pred, "tpr", "fpr")
+
+p1 <- ~ {
+  plot(perf1,
+     avg= "threshold",
+     colorize=TRUE,
+     lwd= 3)
+}
+
+perf2 <- performance(pred, "sens", "spec")
+
+p2 <- ~{
+  plot(perf2,
+     avg= "threshold",
+     colorize=TRUE,
+     lwd= 3)
+}
+
+row2 <- list(p1, p2) %>% 
+  plot_grid(plotlist = ., nrow = 1, labels = c("e", "f"))
+```
+
+```{r}
+library(caret)
+
+pred <- table(predt$`model shape`, predt$`imagej shape`)
+
+confusionMatrix(pred)
+```
+
+```{r}
+library(ggside)
+
+gside <- comp %>% 
+  rename_with(~ gsub("\n", " ", .))
+
+p1 <- gside %>% 
+  inti::plot_raw(type = "s"
+                 , x = "imagej length"
+                 , y = "model length" 
+                 ) +
+  geom_xsidedensity(alpha = 0.25, fill = "red", outline.type = "lower") +
+  geom_ysidedensity(alpha = 0.25, fill = "blue") +
+  scale_ysidex_continuous(guide = guide_axis(angle = 90), position = "top", n.breaks = 3) +
+  ggpmisc::stat_poly_eq(ggpmisc::use_label(c("eq", "R2"))) +
+  theme(ggside.panel.scale.x = 0.25
+        , ggside.panel.scale.y = 0.25
+        ) +
+  labs(x = "Image J - length (pixel)"
+       , y = "Model - length (pixel)")
+
+p2 <- gside %>% 
+  inti::plot_raw(type = "s"
+                 , x = "imagej width"
+                 , y = "model width" 
+                 ) +
+  geom_xsidedensity(alpha = 0.25, fill = "red", outline.type = "lower") +
+  geom_ysidedensity(alpha = 0.25, fill = "blue", ) +
+  scale_ysidex_continuous(guide = guide_axis(angle = 90), position = "top", n.breaks = 3) +
+  ggpmisc::stat_poly_eq(ggpmisc::use_label(c("eq", "R2"))) +
+  theme(ggside.panel.scale.x = 0.25
+        , ggside.panel.scale.y = 0.25
+        ) +
+  labs(x = "Image J - Width (pixel)"
+       , y = "Model - Width (pixel)")
+
+p3 <- gside %>% 
+  inti::plot_raw(type = "s"
+                 , x = "imagej area"
+                 , y = "model area" 
+                 ) +
+  geom_xsidedensity(alpha = 0.25, fill = "red", outline.type = "lower") +
+  geom_ysidedensity(alpha = 0.25, fill = "blue", ) +
+  scale_ysidex_continuous(guide = guide_axis(angle = 90), position = "top", n.breaks = 3) +
+  ggpmisc::stat_poly_eq(ggpmisc::use_label(c("eq", "R2"))) +
+  theme(ggside.panel.scale.x = 0.25
+        , ggside.panel.scale.y = 0.25
+        ) +
+  labs(x = "Image J - Area (pixel^2)"
+       , y = "Model - Area (pixel^2)")
+
+
+row1 <- list(p1, p2, p3) %>% 
+  plot_grid(plotlist = ., nrow = 1, labels = "auto"
+            , rel_widths = c(1, 1, 1.2))
+```
+
+```{r}
+list(row1, row2) %>% 
+  plot_grid(plotlist = ., nrow = 2, rel_heights = c(1.2, 1)) %>% 
+  ggsave2(filename = "files/Fig3.jpg"
+          , width = 40
+          , height = 25
+          , units = "cm"
+          )
+
+list(row1, row2) %>% 
+  plot_grid(plotlist = ., nrow = 2, rel_heights = c(1.2, 1)) %>% 
+  ggsave2(filename = "files/Fig3.eps"
+          , width = 40
+          , height = 25
+          , units = "cm"
+          )
+```
+
+# Multi-location trials analysis
+
+```{r}
+rs$img_folder %>% unique()
+
+ilp2017 <- "https://docs.google.com/spreadsheets/d/1w7m54SKGGLEj1d4RB7JTDyS4957vZgzEg6XZREZRXGk/edit#gid=2102248480" %>% 
+  as_sheets_id() %>% 
+  range_read(sheet = "SC_org")
+
+ilp17 <- ilp2017 %>% 
+  dplyr::select(pht_flw, cross, line, r, sample,block, pnl_flw, pnd_flw
+         , rdt_10
+         ) %>% 
+  unite("line", c(cross, line), sep = " ") %>% 
+  mutate(img_name = paste0(pht_flw, ".jpg")) %>% 
+  dplyr::select(!pht_flw)  %>% 
+  mutate(nline = case_when(
+    !str_detect(line, "x") ~ gsub(" .*", "\\1", line)
+    , TRUE ~ line
+  )) %>% 
+  dplyr::select(!line) %>% 
+  merge(., rs, sort = F, all.x = T) %>% 
+  mutate(line = case_when(
+    !is.na(nline) ~ nline
+    , str_detect(img_name, pattern = "_") ~ sub("\\_.*", "", img_name)
+  ), .after = img_name) 
+
+#> illpa-2017-f7
+
+ilp2017 <- ilp17 %>% 
+  filter(img_folder %in% "F7-illpa") %>% 
+  dplyr::select(line, r, block, sample
+         , panicle_length.width, panicle_width.length, panicle_shape
+         ) %>%
+  mutate(across(c(line, r, block, sample), as.factor)) %>% 
+  mutate(panicle_shape = case_when(
+    panicle_shape %in% "glomerulate" ~ 0
+    , panicle_shape %in% "amaranth" ~ 1
+  )) %>% 
+  mutate(across(where(is.character), as.numeric))  
+
+model <- 5:length(ilp2017) %>% map(function(x) { 
+  
+  trait <- names(ilp2017)[x]
+  
+    H2cal(data = ilp2017
+     , trait = trait
+     , gen.name = "line"
+     , fixed.model = "0 + (1|r) + (1|r:block) +  line"
+     , random.model = "1 + (1|r) + (1|r:block) + (1|line)"
+     , rep.n = 2
+     , emmeans = F
+     , plot_diag = T
+     , outliers.rm = T
+     , summary = T
+     , trial = "F7-illpa"
+     )
+  
+  })
+
+tabsmr_ilp2017 <- 1:length(model) %>% map(function(x) {
+      model[[x]][["tabsmr"]] 
+    }) %>% 
+  bind_rows() %>% 
+  select(!c(trial, rep, V.p, H2.s, H2.p, H2.c)) %>% 
+  rename(Trait = trait) %>% 
+  mutate(across(where(is.numeric), ~ round(., 3)))
+
+# tabsmr_ilp2017 %>% sheet_write(ss = gs, sheet = "tabS1")
+
+blues_ilp2017 <- 1:length(model) %>% map(function(x) {
+
+      model[[x]][["blues"]] %>% dplyr::select(!matches("smith.w"))
+    
+      }) %>% 
+  Reduce(function(...) merge(..., all = TRUE, by = c("trial", 'line')), .) %>% 
+  bind_rows()
+
+#> F8-camacani
+
+cmc2018 <- rs %>% 
+  filter(img_folder %in% "F8-camacani") %>% 
+  separate(img_name, into = c("line", "suffix"), sep = "_", remove = FALSE, extra = "drop", fill = "right") %>% 
+  dplyr::select(line
+                , panicle_length.width, panicle_width.length
+                , panicle_shape
+                ) %>%
+  mutate(across(c(line), as.factor)) %>% 
+  mutate(panicle_shape = case_when(
+    panicle_shape %in% "glomerulate" ~ 0
+    , panicle_shape %in% "amaranth" ~ 1
+  )) %>% 
+  mutate(across(where(is.character), as.numeric)) %>% 
+  mutate(trial = "F8-camacani", .before = line) 
+  
+
+#> F8-illpa
+
+ilp2018 <- rs %>% 
+  filter(img_folder %in% "F8-illpa") %>% 
+  separate(img_name, into = c("line", "suffix"), sep = "_", remove = FALSE, extra = "drop", fill = "right") %>% 
+  dplyr::select(line
+                , panicle_length.width, panicle_width.length
+                , panicle_shape
+                ) %>%
+  mutate(across(c(line), as.factor)) %>% 
+  mutate(panicle_shape = case_when(
+    panicle_shape %in% "glomerulate" ~ 0
+    , panicle_shape %in% "amaranth" ~ 1
+  )) %>% 
+  mutate(across(where(is.character), as.numeric)) %>% 
+  mutate(trial = "F8-illpa", .before = line) 
+
+lines <- ilp2018 %>% select(line) %>% unique() %>% deframe() %>% as.vector()
+
+# MLT data
+
+mlt <- list(blues_ilp2017
+            , cmc2018
+            , ilp2018
+            ) %>% 
+  bind_rows() %>% 
+  separate(trial, c("year", "location"), remove = F) %>%  
+  mutate(across(where(is.character), as.factor)) 
+
+mlt %>% names()
+```
+
+## One stage analysis
+
+```{r}
+mltbn <- list(ilp2017 %>% mutate(trial = "F7-illpa")
+              , ilp2018
+              , cmc2018 
+              ) %>% 
+  bind_rows() %>% 
+  select(trial, everything()) 
+
+model <- 6:length(mltbn) %>% map(function(x) { 
+  
+  trait <- names(mltbn)[x]
+  
+  mltbn %>% 
+    H2cal(data = .
+     , trait = trait
+     , gen.name = "line"
+     , env.name = "trial"
+     , env.n = 3
+     , fixed.model = "0 + (1|trial) + (1|line:trial) + line"
+     , random.model = "1 + (1|trial) + (1|line:trial) + (1|line)"
+     , rep.n = 2
+     , emmeans = F
+     , plot_diag = T
+     , outliers.rm = switch(trait, panicle_shape = FALSE, TRUE)
+     , summary = F
+     )
+  
+  })
+
+#> model parameter
+
+model_tabsmr <- 1:length(model) %>% map(function(x) {
+      model[[x]][["tabsmr"]] 
+    }) %>% bind_rows() %>% 
+  select(!c(rep, V.p, repeatability, H2.p)) %>% 
+  rename(Trait = trait) %>% 
+  mutate(across(where(is.numeric), ~ round(., 3)))
+
+model_tabsmr %>% web_table()
+
+# model_tabsmr %>% sheet_write(ss = gs, sheet = "tabS2")
+
+model_blups <- 1:length(model) %>% map(function(x) {
+
+      model[[x]][["blups"]] %>% select(!matches("smith.w"))
+    
+      }) %>% Reduce(function(...) merge(..., all = TRUE, by = c('line')), .) %>% 
+  bind_rows() %>% 
+  pivot_longer(!line) %>% 
+  pivot_wider()
+
+model_blups %>% web_table(caption = "BLUPs")
+
+model_blues <- 1:length(model) %>% map(function(x) {
+
+      model[[x]][["blues"]] %>% select(1:2)
+    
+      }) %>% Reduce(function(...) merge(..., all = TRUE, by = c('line')), .) %>% 
+  bind_rows() 
+
+model_blues %>% web_table(caption = "BLUEs")
+
+#>
+
+
+plotvc <- model_tabsmr %>% 
+  select(Trait, matches("V.g|V.e|H2")) %>% 
+  select(where(~ any(. != 0))) %>% 
+  pivot_longer(!c(Trait, H2.c)) %>% 
+  group_by(Trait) %>% 
+  mutate(percent = value/sum(value)*100) %>% 
+  ungroup() %>% 
+  mutate(H2 = round(H2.c, 2)) %>% 
+  mutate(sig = paste0("H2 = ", round(H2.c, 2))) %>% 
+  mutate(Trait = trimws(Trait)) %>% 
+  mutate(Trait = gsub("\\.", "/", Trait)) %>% 
+  mutate(Trait = gsub("_", "\n", Trait)) 
+
+f4c <-  plotvc %>% 
+    plot_smr(x = "Trait"
+           , y = "percent"
+           , group = "name"
+           , xlab = ""
+           , ylab = "Percentage ('%')"
+           , glab = "Variance component"
+           , ylimits = c(0, 109, 10)
+           # , xrotation = c(45, 1, 1)
+           ) +
+  geom_bar(position="stack", stat="identity") +
+  geom_text(data = plotvc, aes(x = Trait, label = sig, y = 105, fill=NULL)) 
+
+
+lbls <- as_labeller(c("panicle_length.width" = "Panicle length/width"
+                    , "panicle_width.length" = "Panicle width/length"
+                    , "panicle_shape" = "Panicle shape"
+                    ))
+
+f4d <- model_blues %>%
+  pivot_longer(!c(line)) %>% 
+  ggplot(aes(x = value)) + 
+    geom_histogram(aes(y=..density..), 
+                   colour="black", fill="white") +
+  scale_y_continuous(expand = c(0, 0)) + 
+  geom_density(alpha=.1, fill="#FF6666") +
+  facet_wrap(vars(name), scales = "free", nrow = 1
+             , strip.position = "bottom"
+             , labeller = lbls
+             ) +
+  theme_bw() +
+  labs(x = "", y = "") 
+
+
+```
+
+#  Binomial distribution
+
+```{r}
+library(lme4)
+library(lmerTest)
+
+bmodel1 <- lmer(panicle_shape ~ 1 + (1|trial) + (1|line:trial) + (1|line)
+                , data = mltbn)
+
+bmodel2 <- glmer(panicle_shape ~ 1 + (1|trial) + (1|line:trial) + (1|line)
+                , family = binomial(link = "logit")
+                , data = mltbn)
+
+AIC(bmodel1, bmodel2)
+
+#> lmer
+
+g.ran <- bmodel1
+gen.name <- "line"
+env.name <- "trial"
+env <- 3
+rep <- 2
+
+g.ran %>% summary()
+
+vc.g <- c(lme4::VarCorr(g.ran)[[gen.name]])
+
+gxl <- paste(gen.name, env.name, sep = ":")
+
+vc.gxl <- g.ran %>%
+      lme4::VarCorr() %>%
+      tibble::as_tibble() %>%
+      dplyr::filter(grp == gxl) %>%
+      dplyr::pull(vcov)
+
+vc.e <- g.ran %>%
+    lme4::VarCorr() %>%
+    tibble::as_tibble() %>%
+    dplyr::filter(grp == "Residual") %>%
+    dplyr::pull(vcov)
+
+vc.p = (vc.g + vc.gxl/env + vc.e/(env*rep))
+
+H2.s = vc.g/vc.p
+
+H2.s 
+
+#> lmer = 0.66
+
+#> glmer
+
+g.ran <- bmodel2
+gen.name <- "line"
+env.name <- "trial"
+env <- 3
+rep <- 2
+
+g.ran %>% summary()
+
+vc.g <- c(lme4::VarCorr(g.ran)[[gen.name]])
+
+gxl <- paste(gen.name, env.name, sep = ":")
+
+vc.gxl <- g.ran %>%
+      lme4::VarCorr() %>%
+      tibble::as_tibble() %>%
+      dplyr::filter(grp == gxl) %>%
+      dplyr::pull(vcov)
+
+vc.e <- g.ran %>%
+    lme4::VarCorr() %>%
+    tibble::as_tibble() %>%
+    dplyr::filter(grp == "Residual") %>%
+    dplyr::pull(vcov)
+
+vc.e <- 0
+
+vc.p = (vc.g + vc.gxl/env + vc.e/(env*rep))
+
+H2.s = vc.g/vc.p
+
+H2.s 
+
+#> glmer = 0.69
+```
+
+## Panicle distribution by type
+
+```{r}
+pdt <- list(ilp2017 %>% mutate(trial = "F7-illpa", .before = line)
+            , cmc2018
+            , ilp2018
+            ) %>% 
+  bind_rows() %>% 
+  mutate(panicle_shape = case_when(
+    panicle_shape %in% 0 ~ "glomerulate"
+    , panicle_shape %in% 1 ~ "amaranth"
+  )) %>% 
+  separate(trial, c("generation", "location"), remove = F) 
+  
+panper <- pdt %>% 
+  group_by(generation, location, panicle_shape) %>% 
+  summarise(n = n()) %>% 
+  mutate(per = (n/ sum(n)) * 100) %>% 
+  mutate(across(per, ~round(., 1)))
+
+# panper %>% sheet_write(ss = gs, sheet = "tab4")
+
+#> plot
+
+pie <- panper %>% 
+  mutate(csum = rev(cumsum(rev(per))), 
+         pos = per/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), per/2, pos))
+
+f4a <- pie %>% 
+  ggplot(aes(x = "" , y = per, fill = panicle_shape)) +
+  geom_col(width = 1, color = 1) +
+  coord_polar(theta = "y") +
+  scale_fill_brewer(palette = "Pastel2") +
+  ggrepel::geom_label_repel(data = pie, 
+                   aes(y = pos, label = paste0(per, "% (n =", n , ")")),
+                   size = 2.5, nudge_x = 1, show.legend = FALSE) +
+  guides(fill = guide_legend(title = "Panicle Shape", title.position = "top")) +
+  facet_wrap(generation ~ location, ncol = 1) +
+  theme_void() +
+  theme(legend.position="bottom") 
+
+f4a
+
+#> 
+
+modelpan <- pdt %>% 
+  aov(panicle_length.width ~ trial*panicle_shape, data = .)
+
+Anova(modelpan,type="III", singular.ok = TRUE)
+
+res1 <- emmeans::emmeans(modelpan, ~ panicle_shape) %>% 
+  multcomp::cld(Letters = letters, reversed = T) %>% 
+  mutate(across(.group, ~trimws(.)))
+  
+f4b <- pdt %>% 
+  plot_raw(x = "panicle_shape"
+           , y = "panicle_length.width"
+           , legend = "none"
+           , ylab = "Panicle length/width"
+           , xlab = "Panicle shape"
+           ) +
+  annotate("text", y = 7.5
+           , x = res1$panicle_shape
+           , label = res1$.group)
+
+```
+
+## model selection
+
+```{r}
+#| eval: false
+
+#> model comparison
+
+m1 <- lme4::lmer(panicle_length.width ~ 1 + (1|location) + (1|year) + (1|line:location) + (1|line:year) + (1|line:year:location) + (1|line), data = mlt)
+
+m2 <- lme4::lmer(panicle_length.width ~ 1 + (1|trial) + (1|line:trial) + (1|line), data = mlt)
+
+aic.1 <- tibble(model = c("m1", "m2"), model_formula = c(
+  "trait ~ 1 + (1|location) + (1|year) + (1|line:location) + (1|line:year) + (1|line:year:location) + (1|line)"
+  , "trait ~ 1 + (1|trial) + (1|line:trial) + (1|line)"
+)) 
+
+#> error for low level in groups
+
+m3 <- lme4::lmer(panicle_length.width ~ 1 + (1|location) + (1|year) + (1|line:location) + (1|line:year)  + (1|line), data = mlt)
+
+m4 <- lme4::lmer(panicle_length.width ~ 1 + (1|trial) + (1|line), data = mlt)
+
+aic.2 <- AIC(m3, m4) %>% 
+  data.frame() %>% 
+  rownames_to_column("model") %>% 
+  mutate(model_formula = case_when(
+    model == "m3" ~ "trait ~ 1 + (1|location) + (1|year) + (1|line:location) + (1|line:year)  + (1|line)"
+    , model == "m4" ~ "trait ~ 1 + (1|trial) + (1|line)"
+  ))
+
+model_aic <- bind_rows(aic.1, aic.2) %>% 
+  select(model, df, AIC, everything())
+
+# model_aic %>% sheet_write(ss = gs, sheet = "STab1")
+
+model_aic %>% web_table()
+```
+
+## quantitative-gentics parameters
+
+```{r}
+#> Complete model
+
+model <- 5:length(mlt) %>% map(function(x) { 
+  
+  trait <- names(mlt)[x]
+  
+  mlt %>% 
+    H2cal(data = .
+     , trait = trait
+     , gen.name = "line"
+     , env.name = "location"
+     , env.n = 2
+     , year.name = "year"
+     , year.n = 2
+     , fixed.model = "0 + (1|location) + (1|year) + (1|line:location) + (1|line:year) + line"
+     , random.model = "1 + (1|location) + (1|year) + (1|line:location) + (1|line:year) + (1|line)"
+     , rep.n = 2
+     , emmeans = F
+     , plot_diag = T
+     , outliers.rm = F
+     , summary = F
+     )
+  
+  })
+
+#> model parameter
+
+model_tabsmr <- 1:length(model) %>% map(function(x) {
+      model[[x]][["tabsmr"]] 
+    }) %>% bind_rows() %>% 
+  select(!c(rep, V.p, repeatability, H2.p, V.gxy, V.gxlxy)) %>% 
+  rename(Trait = trait) %>% 
+  mutate(across(where(is.numeric), ~ round(., 3)))
+
+model_tabsmr %>% web_table()
+
+# model_tabsmr %>% sheet_write(ss = gs, sheet = "STable7")
+
+model_blups <- 1:length(model) %>% map(function(x) {
+
+      model[[x]][["blups"]] %>% select(!matches("smith.w"))
+    
+      }) %>% Reduce(function(...) merge(..., all = TRUE, by = c('line')), .) %>% 
+  bind_rows() %>% 
+  pivot_longer(!line) %>% 
+  pivot_wider()
+
+model_blups %>% web_table(caption = "BLUPs")
+
+model_blues <- 1:length(model) %>% map(function(x) {
+
+      model[[x]][["blues"]] %>% select(1:2)
+    
+      }) %>% Reduce(function(...) merge(..., all = TRUE, by = c('line')), .) %>% 
+  bind_rows() 
+
+model_blues %>% web_table(caption = "BLUEs")
+```
+
+## variance component plot
+
+```{r}
+plotvc <- model_tabsmr %>% 
+  select(Trait, matches("V.g|V.e|H2")) %>% 
+  select(where(~ any(. != 0))) %>% 
+  pivot_longer(!c(Trait, H2.c)) %>% 
+  group_by(Trait) %>% 
+  mutate(percent = value/sum(value)*100) %>% 
+  ungroup() %>% 
+  mutate(H2 = round(H2.c, 2)) %>% 
+  mutate(sig = paste0("H2 = ", round(H2.c, 2))) %>% 
+  mutate(Trait = trimws(Trait)) %>% 
+  mutate(Trait = gsub("\\.", "/", Trait)) %>% 
+  mutate(Trait = gsub("_", "\n", Trait)) 
+
+f4c <-  plotvc %>% 
+    plot_smr(x = "Trait"
+           , y = "percent"
+           , group = "name"
+           , xlab = ""
+           , ylab = "Percentage ('%')"
+           , glab = "Variance component"
+           , ylimits = c(0, 109, 10)
+           # , xrotation = c(45, 1, 1)
+           ) +
+  geom_bar(position="stack", stat="identity") +
+  geom_text(data = plotvc, aes(x = Trait, label = sig, y = 105, fill=NULL)) 
+```
+
+## Trait distribution
+
+```{r}
+lbls <- as_labeller(c("panicle_length.width" = "Panicle length/width"
+                    , "panicle_width.length" = "Panicle width/length"
+                    , "panicle_shape" = "Panicle shape"
+                    ))
+
+f4d <- model_blups %>%
+  pivot_longer(!c(line)) %>% 
+  ggplot(aes(x = value)) + 
+    geom_histogram(aes(y=..density..), 
+                   colour="black", fill="white") +
+  scale_y_continuous(expand = c(0, 0)) + 
+  geom_density(alpha=.1, fill="#FF6666") +
+  facet_wrap(vars(name), scales = "free", nrow = 1
+             , strip.position = "bottom"
+             , labeller = lbls
+             ) +
+  theme_bw() +
+  labs(x = "", y = "") 
+```
+
+# Figure 4
+
+```{r}
+f4bc <- plot_grid(f4b
+                 , f4c
+                 , labels = c("b", "c")) 
+
+
+f4bcd <- plot_grid(f4bc, f4d
+                , nrow = 2
+                , labels = c("", "d")
+                )
+
+f4 <- plot_grid(f4a, f4bcd
+                , nrow = 1
+                , labels = c("a", "")
+                , rel_widths = c(1, 4)
+                )
+
+f4 %>% 
+  ggsave(plot = ., "files/Fig4.jpg", width = 25, height = 20, units = "cm")
+
+f4 %>% 
+  ggsave(plot = ., "files/Fig4.eps", width = 25, height = 20, units = "cm")
+```
+
+# Figure 5
+
+```{r}
+segscale <- seg %>% 
+  filter(img_folder == "scale-images")
+
+scaledt <- gs %>% 
+  range_read("scale") %>% 
+  filter(!id %in% 236) %>% 
+  pivot_longer(!c(1:7)) %>% 
+  filter(grepl("white", name)) %>%
+  drop_na("panicle-shape") %>% 
+  mutate(`panicle-shape` = case_when(
+    `panicle-shape` %in% c("2", "3") ~ "1"
+    , `panicle-shape` == c("1") ~ "0"
+  )) %>% 
+  mutate(across(`panicle-shape`, as.numeric)) %>% 
+  rename(img_name = "value") %>% 
+  mutate(`panicle-width.length` = `panicle-width`/`panicle-length`) %>% 
+  mutate(`panicle-length.width` = `panicle-length`/ `panicle-width`) %>% 
+  rename_with(~gsub("panicle-", "scale\n", .))
+
+dtscale <- merge(scaledt, segscale, by.x = "img_name", all.x = T) %>% 
+  dplyr::select(matches("img_name|length|width|shape")) %>% 
+  mutate(across(everything(), as.character)) %>% 
+  drop_na(`model\nshape`) %>% 
+  pivot_longer(!img_name) %>% 
+  separate(name, c("model", "trait"), sep = "\n") %>% 
+  arrange(trait) %>% 
+  unite("name", c("model", "trait")) %>% 
+  pivot_wider() %>% 
+  mutate(across(!img_name, ~as.numeric(.))) 
+```
+
+```{r}
+library(ggside)
+
+p5b <- dtscale %>% 
+  inti::plot_raw(type = "s"
+                 , x = "scale_length" 
+                 , y = "model_length"
+                 ) +
+  geom_xsidedensity(alpha = 0.25, fill = "red", outline.type = "lower") +
+  geom_ysidedensity(alpha = 0.25, fill = "blue") +
+  scale_ysidex_continuous(guide = guide_axis(angle = 90), position = "top", n.breaks = 3) +
+  ggpmisc::stat_poly_eq(ggpmisc::use_label(c("eq", "R2"))) +
+  theme(ggside.panel.scale.x = 0.25
+        , ggside.panel.scale.y = 0.25
+        ) +
+  labs(x = "Real - length (cm)"
+       , y = "Model - length (pixel)")
+
+p5c <- dtscale %>% 
+  inti::plot_raw(type = "s"
+                 , x = "scale_width" 
+                 , y = "model_width"
+                 ) +
+  geom_xsidedensity(alpha = 0.25, fill = "red", outline.type = "lower") +
+  geom_ysidedensity(alpha = 0.25, fill = "blue") +
+  scale_ysidex_continuous(guide = guide_axis(angle = 90), position = "top", n.breaks = 3) +
+  ggpmisc::stat_poly_eq(ggpmisc::use_label(c("eq", "R2"))) +
+  theme(ggside.panel.scale.x = 0.25
+        , ggside.panel.scale.y = 0.25
+        ) +
+  labs(x = "Real - width (cm)"
+       , y = "Model - width (pixel)")
+
+p5d <- dtscale %>% 
+  inti::plot_raw(type = "s"
+                 , x = "scale_width.length" 
+                 , y = "model_width.length"
+                 ) +
+  geom_xsidedensity(alpha = 0.25, fill = "red", outline.type = "lower") +
+  geom_ysidedensity(alpha = 0.25, fill = "blue") +
+  scale_ysidex_continuous(guide = guide_axis(angle = 90), position = "top", n.breaks = 3) +
+  ggpmisc::stat_poly_eq(ggpmisc::use_label(c("eq", "R2"))) +
+  theme(ggside.panel.scale.x = 0.25
+        , ggside.panel.scale.y = 0.25
+        ) +
+  labs(x = "Real - widwidth/lengthth (cm)"
+       , y = "Model - width/length (pixel)")
+
+p5e <- dtscale %>% 
+  inti::plot_raw(type = "s"
+                 , x = "scale_length.width" 
+                 , y = "model_length.width"
+                 ) +
+  geom_xsidedensity(alpha = 0.25, fill = "red", outline.type = "lower") +
+  geom_ysidedensity(alpha = 0.25, fill = "blue") +
+  scale_ysidex_continuous(guide = guide_axis(angle = 90), position = "top", n.breaks = 3) +
+  ggpmisc::stat_poly_eq(ggpmisc::use_label(c("eq", "R2"))) +
+  theme(ggside.panel.scale.x = 0.25
+        , ggside.panel.scale.y = 0.25
+        ) +
+  labs(x = "Real - length/width (cm)"
+       , y = "Model - length/width (pixel)")
+
+
+library(ROCR)
+
+pred <- prediction(predictions = dtscale$model_shape
+                  , labels = dtscale$scale_shape)
+
+perf1 <- performance(pred, "tpr", "fpr")
+
+
+pred <- table(dtscale$scale_shape, dtscale$model_shape)
+
+confusionMatrix(pred)
+
+p5f <- ~ {
+  plot(perf1,
+     avg= "threshold",
+     colorize=TRUE,
+     lwd= 3)
+}
+
+p5a <- "files/fig5a.jpg" %>% 
+  jpeg::readJPEG() %>% 
+  grid::rasterGrob()
+
+p5ad <- list(p5b, p5c, p5d, p5e) %>% 
+  plot_grid(plotlist = ., ncol = 2, labels = "auto")
+
+p5fe <- list(p5f, p5a) %>% 
+  plot_grid(plotlist = ., labels = c("e", "f"), ncol = 1
+              , rel_heights = c(0.7, 1)) 
+
+list(p5ad, p5fe) %>% 
+  plot_grid(plotlist = ., ncol = 2, rel_widths = c(2, 1)) %>% 
+  ggsave(plot = .
+         , "files/Fig5.jpg", width = 30, height = 20, units = "cm")
+
+list(p5ad, p5fe) %>% 
+  plot_grid(plotlist = ., ncol = 2, rel_widths = c(2, 1)) %>% 
+  ggsave(plot = .
+         , "files/Fig5.eps", width = 30, height = 20, units = "cm")
+```
+
+# Supplementary Figure 1
+
+```{r}
+dir <- "annotation/imagej/" %>% 
+  list.files(pattern = ".png", full.names = T)
+  
+plots <- 1:length(dir) %>% map( function(x) {
+  
+  dir[[x]] %>% 
+    image_import() %>% 
+    grid::rasterGrob()
+  
+})
+
+fig <- cowplot::plot_grid(plotlist = plots
+                   , ncol = 2
+                   , labels = c("(a) Parameters selection"
+                                , "(b) Image analysis")
+                   , hjust = 0
+                   , label_y = 1.07
+                   , label_x = 0.01
+                   , label_size = 25
+                   ) +
+  theme(plot.margin = unit(c(1, 0, 0, 0), "cm"))
+
+fig %>% 
+  ggsave2(filename = "files/FigS1.jpg"
+          , width = 20
+          , height = 7.5
+          )
+
+fig %>% 
+  ggsave2(filename = "files/FigS1.pdf"
+          , width = 20
+          , height = 7.5
+          )
+
+
+"files/FigS1.jpg" %>% include_graphics()
+```
+
+# Supplementary Figure 2
+
+```{r}
+dir <- "files/" %>% 
+  list.files(pattern = "FigS2", full.names = T)
+  
+plots <- 1:length(dir) %>% map( function(x) {
+  
+  dir[[x]] %>% 
+    image_import() %>% 
+    grid::rasterGrob()
+  
+})
+
+fig <- cowplot::plot_grid(plotlist = plots
+                   , ncol = 2
+                   , labels = "auto"
+                   , label_size = 20
+                   ) 
+
+fig %>% 
+  ggsave2(filename = "files/FigS2.pdf"
+          , width = 12
+          , height = 8
+          )
+
+fig %>% 
+  ggsave2(filename = "files/FigS2.jpg"
+          , width = 12
+          , height = 8
+          )
+
+"files/FigS2.jpg" %>% include_graphics()
+```
+
+# Image pdf to png
+
+```{r}
+pdf2png <- list.files("files/", pattern = "Fig.*pdf", full.names = T) 
+
+imgs <- 1:length(pdf2png) %>% map(\(x) {
+  
+  filename <- pdf2png[x] %>% gsub(".pdf", "\\1.png", .) 
+  
+  pdf2png[x] %>% 
+    image_read_pdf() %>% 
+    image_write(format = "png", filename)
+  
+})
+```
