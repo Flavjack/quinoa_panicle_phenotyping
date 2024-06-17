@@ -6,7 +6,7 @@ format:
     toc-location: left
     number-sections: true
     self-contained: true
-    output-file: "ESM_1"
+    output-file: ESM_1
 editor_options: 
   chunk_output_type: console
 execute: 
@@ -1536,7 +1536,7 @@ p5f <- ~ {
      lwd= 3)
 }
 
-p5a <- "files/fig5a.jpg" %>% 
+p5a <- "annotation/figures/fig5a.jpg" %>% 
   jpeg::readJPEG() %>% 
   grid::rasterGrob()
 
@@ -1558,7 +1558,7 @@ list(p5ad, p5fe) %>%
          , "files/Fig5.eps", width = 30, height = 20, units = "cm")
 ```
 
-# Supplementary Figure 1
+# Supplementary Figure 2
 
 ```{r}
 dir <- "annotation/imagej/" %>% 
@@ -1584,25 +1584,18 @@ fig <- cowplot::plot_grid(plotlist = plots
   theme(plot.margin = unit(c(1, 0, 0, 0), "cm"))
 
 fig %>% 
-  ggsave2(filename = "files/FigS1.jpg"
+  ggsave2(filename = "files/FigS2.jpg"
           , width = 20
           , height = 7.5
           )
 
-fig %>% 
-  ggsave2(filename = "files/FigS1.pdf"
-          , width = 20
-          , height = 7.5
-          )
-
-
-"files/FigS1.jpg" %>% include_graphics()
+"files/FigS2.jpg" %>% include_graphics()
 ```
 
-# Supplementary Figure 2
+# Supplementary Figure 3
 
 ```{r}
-dir <- "files/" %>% 
+dir <- "annotation/figures/" %>% 
   list.files(pattern = "FigS2a|b", full.names = T)
   
 plots <- 1:length(dir) %>% map( function(x) {
@@ -1620,18 +1613,12 @@ fig <- cowplot::plot_grid(plotlist = plots
                    ) 
 
 fig %>% 
-  ggsave2(filename = "files/FigS2.eps"
+  ggsave2(filename = "files/FigS3.jpg"
           , width = 12
           , height = 8
           )
 
-fig %>% 
-  ggsave2(filename = "files/FigS2.jpg"
-          , width = 12
-          , height = 8
-          )
-
-"files/FigS2.jpg" %>% include_graphics()
+"files/FigS3.jpg" %>% include_graphics()
 ```
 
 # Image pdf to png

@@ -54,3 +54,5 @@ gitignore
 *.sh
 *.gz
 submission
+manuscript
+files
