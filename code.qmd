@@ -1603,7 +1603,7 @@ fig %>%
 
 ```{r}
 dir <- "files/" %>% 
-  list.files(pattern = "FigS2", full.names = T)
+  list.files(pattern = "FigS2a|b", full.names = T)
   
 plots <- 1:length(dir) %>% map( function(x) {
   
@@ -1620,7 +1620,7 @@ fig <- cowplot::plot_grid(plotlist = plots
                    ) 
 
 fig %>% 
-  ggsave2(filename = "files/FigS2.pdf"
+  ggsave2(filename = "files/FigS2.eps"
           , width = 12
           , height = 8
           )
