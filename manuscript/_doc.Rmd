@@ -22,7 +22,7 @@ Karl Schmid: 0000-0001-5129-895X
 
 
 
-**STATEMENTS & DECLARATIONS**
+**STATEMENTS AND DECLARATIONS**
 
 **Acknowledgments**
 
@@ -172,7 +172,8 @@ For the multi-environment analyses, broad-sense heritabilities (i.e., Cullis app
 A Pearson correlation plot was used to compare the trait predictions made with Mask R-CNN and ImageJ and was performed using the *psych* R package [(Revelle 2021)](https://www.zotero.org/google-docs/?qtObKc). The plots were produced with the package *ggplot2* [(Wickham et al. 2023)](https://www.zotero.org/google-docs/?liMTUD) and *ggside* [(Landis 2022)](https://www.zotero.org/google-docs/?CzxJLJ). Code and reproducible data analysis were implemented under Quarto, an open-source scientific and technical publishing system [(Allaire et al. 2022, Supplementary File 1)](https://www.zotero.org/google-docs/?4aG49l). 
 
 
-#  RESULTS
+\newpage
+# RESULTS
 
 ## Training models for segmentation and classification
 
@@ -515,6 +516,4 @@ knitr::kable(tibble::tibble(' ' = ''))
 #| tbl-cap: 'Model performance for 12 classification models using three different architectures, dense layers, and activation function configurations for binary image classification for quinoa panicles in amarantiform and glomerulate panicle shapes. Values represented by Least-squares means (accuracy) and standard error (ste). Significance (sig) was estimated based on Tukey (p<0.05). Each model was run with five replications.'
 knitr::kable(tibble::tibble(' ' = ''))
 ```
-\newpage
-\newpage
 \newpage

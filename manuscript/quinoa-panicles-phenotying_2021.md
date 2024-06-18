@@ -22,7 +22,7 @@ Karl Schmid: 0000-0001-5129-895X
 
 
 
-**STATEMENTS & DECLARATIONS**
+**STATEMENTS AND DECLARATIONS**
 
 **Acknowledgments**
 
@@ -174,7 +174,7 @@ A Pearson correlation plot was used to compare the trait predictions made with M
 
 # 
 
-#  RESULTS
+# RESULTS
 
 ## Training models for segmentation and classification
 
