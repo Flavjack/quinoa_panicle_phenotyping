@@ -74,7 +74,7 @@ Considering the labor-intensive nature of phenotyping quinoa panicles under fiel
 
 # MATERIALS AND METHODS
 
-## *Plant* material
+## Plant material
 
 The plant material used for the experiments was derived from six segregating populations of quinoa (*Chenopodium quinoa* Willd.) originating from single crosses of landraces provided by the germplasm bank of the Universidad Nacional del Altiplano, Puno, Peru [(Lozano-Isla et al. 2023)](https://www.zotero.org/google-docs/?Tumusi). The field trials were conducted in three successive growing seasons from 2016 to 2019 as multi-location trials for line selection ("selection trials"), and variety registration (“registration trials”) trials in the Peruvian Highlands ([Table  @tbl:id.r5y16fnovap5]:). Images from the 2021-2022 season for production and seed increase (“production trials”) were used for the validation set using scales in the images.
 
@@ -172,7 +172,7 @@ For the multi-environment analyses, broad-sense heritabilities (i.e., Cullis app
 
 A Pearson correlation plot was used to compare the trait predictions made with Mask R-CNN and ImageJ and was performed using the *psych* R package [(Revelle 2021)](https://www.zotero.org/google-docs/?qtObKc). The plots were produced with the package *ggplot2* [(Wickham et al. 2023)](https://www.zotero.org/google-docs/?liMTUD) and *ggside* [(Landis 2022)](https://www.zotero.org/google-docs/?CzxJLJ). Code and reproducible data analysis were implemented under Quarto, an open-source scientific and technical publishing system [(Allaire et al. 2022, Supplementary File 1)](https://www.zotero.org/google-docs/?4aG49l). 
 
-
+# 
 
 #  RESULTS
 
@@ -473,20 +473,6 @@ In conclusion, we developed a pipeline to be directly applicable to any set of p
 **A high-throughput phenotyping pipeline for quinoa (*Chenopodium quinoa*) panicles using image analysis with convolutional neural networks**
 
 Flavio Lozano-Isla^1^, Lydia Kienbaum^1^, Bettina I.G. Haussmann^1,2^, Karl Schmid^1\*^
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

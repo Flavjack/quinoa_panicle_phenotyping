@@ -62,6 +62,7 @@ Quinoa is a grain crop with excellent nutritional properties which attracts glob
 **Keywords:** deep learning, genetic resources, genbank phenomics, ImageJ, plant breeding, image analysis
 
 
+\newpage
 # INTRODUCTION
 
 Phenotyping is a key process in plant breeding programs aimed at developing new varieties of crops with higher yields. However, phenotyping poses a bottleneck in the breeding process due to the labor-intensive nature of the task and high cost. Manual phenotyping may result in reduced accuracy and prolonged timelines in breeding programs. Recent advances in phenotyping technologies, such as the use of neural networks for image analysis, revolutionize plant phenotyping by increasing precision, reducing labor intensity, and enabling the identification of new traits relevant to crop breeding [(Araus et al. 2018; Warman and Fowler 2021)](https://www.zotero.org/google-docs/?6YYpPH). This development of technology not only benefits major crops but also minor and orphan crops because the limited resources available for the improvement of such crops can be compensated by low-cost technological approaches for genetic and phenotypic analyses.
@@ -74,9 +75,10 @@ Computational image analysis is revolutionizing plant phenotyping because of its
 
 Considering the labor-intensive nature of phenotyping quinoa panicles under field conditions, we created a high-throughput pipeline for extracting phenotypic traits from images of quinoa panicles. This pipeline is based on our previous work ([Kienbaum et al. 2021)](https://www.zotero.org/google-docs/?PGzM9N), which employed Mask R-CNN for the classification and segmentation of maize cob images. In the present study, we adapted and optimized this approach for image classification, specifically for differentiating between glomerulate and amarantiform panicle types. We performed image segmentation to extract trait measurements to estimate quantitative-genetic parameters for yield components related to panicles. Our objective was to create a pipeline that achieves the same or higher level of accuracy as manual phenotyping but with significantly improved throughput, showcasing the effectiveness of state-of-the-art image analysis using Mask R-CNN in characterizing complex panicle traits. First, we describe the development of a deep learning model specifically designed for the classification and segmentation of quinoa panicles using Mask R-CNN. Subsequently, we demonstrate the application of this pipeline in estimating quantitative genetic parameters from a multi-location trial.
 
+\newpage
 # MATERIALS AND METHODS
 
-## *Plant* material
+## Plant material
 
 The plant material used for the experiments was derived from six segregating populations of quinoa (*Chenopodium quinoa* Willd.) originating from single crosses of landraces provided by the germplasm bank of the Universidad Nacional del Altiplano, Puno, Peru [(Lozano-Isla et al. 2023)](https://www.zotero.org/google-docs/?Tumusi). The field trials were conducted in three successive growing seasons from 2016 to 2019 as multi-location trials for line selection ("selection trials"), and variety registration (“registration trials”) trials in the Peruvian Highlands ([@tbl-id.r5y16fnovap5]). Images from the 2021-2022 season for production and seed increase (“production trials”) were used for the validation set using scales in the images.
 
@@ -168,7 +170,6 @@ The image analysis models were compared with different parameters (i.e., segment
 For the multi-environment analyses, broad-sense heritabilities (i.e., Cullis approach), variance components, Best Linear Unbiased Estimators (BLUEs), and Best Linear Unbiased Predictors (BLUPs) were estimated based on the 'H2cal()' function of the 'inti' package [(Lozano-Isla 2021)](https://www.zotero.org/google-docs/?xxhkmJ). This function uses a linear mixed model for both random and fixed effects for genotypes, based on the *lme4* package [(Bates et al. 2020)](https://www.zotero.org/google-docs/?IDpQRC). Outlier removal for multi-location trials was based on method 4, Bonferroni-Holm, using re-scaled median absolute deviation for standardizing residuals as described in Bernal-Vasquez et al. [(2016)](https://www.zotero.org/google-docs/?knvdO2) and implemented in the same function. 
 
 A Pearson correlation plot was used to compare the trait predictions made with Mask R-CNN and ImageJ and was performed using the *psych* R package [(Revelle 2021)](https://www.zotero.org/google-docs/?qtObKc). The plots were produced with the package *ggplot2* [(Wickham et al. 2023)](https://www.zotero.org/google-docs/?liMTUD) and *ggside* [(Landis 2022)](https://www.zotero.org/google-docs/?CzxJLJ). Code and reproducible data analysis were implemented under Quarto, an open-source scientific and technical publishing system [(Allaire et al. 2022, Supplementary File 1)](https://www.zotero.org/google-docs/?4aG49l). 
-
 
 
 #  RESULTS
@@ -424,63 +425,6 @@ In conclusion, we developed a pipeline to be directly applicable to any set of p
 
 \newpage
 ```{r}
-#| label: tbl-id.vur4v4bpxbe8
-#| tbl-cap: 'Model performance for 16 segmentation models using Mask R-CNN for extracting the phenotypic information using different mask resolution, loss weight, and neural network parameters. Values represented by Least-squares means (ap595) and standard error (ste). Significance (sig) was estimated based on Tukey (p<0.05). Each model was run with five replications.'
-knitr::kable(tibble::tibble(' ' = ''))
-```
-| **Model**           | **loss weight**     | **mask resolution** | **heads.m**         | **ap595**           | **ste**             | **sig**              |
-|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|----------------------|
-| segmentation-1      | mask1class10        | 28x28               | all                 | 0.763               | 0.012               | a                    |
-| segmentation-2      | mask20class1        | 28x28               | all                 | 0.754               | 0.012               | a                    |
-| segmentation-3      | mask10class1        | 28x28               | all                 | 0.747               | 0.012               | a                    |
-| segmentation-4      | mask1class1         | 28x28               | all                 | 0.738               | 0.012               | a                    |
-| segmentation-5      | mask1class1         | 28x28               | heads               | 0.734               | 0.012               | a                    |
-| segmentation-6      | mask20class1        | 28x28               | heads               | 0.727               | 0.012               | ab                   |
-| segmentation-7      | mask10class1        | 28x28               | heads               | 0.725               | 0.012               | ab                   |
-| segmentation-8      | mask1class10        | 28x28               | heads               | 0.686               | 0.012               | b                    |
-| segmentation-9      | mask10class1        | 56x56               | all                 | 0.801               | 0.012               | a                    |
-| segmentation-10     | mask20class1        | 56x56               | all                 | 0.8                 | 0.012               | a                    |
-| segmentation-11     | mask1class1         | 56x56               | all                 | 0.791               | 0.012               | a                    |
-| segmentation-12     | mask1class10        | 56x56               | all                 | 0.782               | 0.012               | a                    |
-| segmentation-13     | mask1class1         | 56x56               | heads               | 0.758               | 0.012               | a                    |
-| segmentation-14     | mask1class10        | 56x56               | heads               | 0.751               | 0.012               | a                    |
-| segmentation-15     | mask10class1        | 56x56               | heads               | 0.737               | 0.012               | ab                   |
-| segmentation-16     | mask20class1        | 56x56               | heads               | 0.704               | 0.012               | b                    |
-\newpage
-```{r}
-#| label: tbl-id.ddv8lvk6bvgs
-#| tbl-cap: 'Model performance for 12 classification models using three different architectures, dense layers, and activation function configurations for binary image classification for quinoa panicles in amarantiform and glomerulate panicle shapes. Values represented by Least-squares means (accuracy) and standard error (ste). Significance (sig) was estimated based on Tukey (p<0.05). Each model was run with five replications.'
-knitr::kable(tibble::tibble(' ' = ''))
-```
-| **Model**               | **architecture**        | **dense layers**        | **activation function** | **accuracy**            | **ste**                 | **sig**                  |
-|-------------------------|-------------------------|-------------------------|-------------------------|-------------------------|-------------------------|--------------------------|
-| classification-01       | InceptionV3             | 128                     | sigmoid                 | 0.917                   | 0.013                   | a                        |
-| classification-02       | InceptionV3             | 128                     | softmax                 | 0.871                   | 0.013                   | a                        |
-| classification-03       | InceptionV3             | 1024                    | sigmoid                 | 0.909                   | 0.015                   | a                        |
-| classification-04       | InceptionV3             | 1024                    | softmax                 | 0.924                   | 0.015                   | a                        |
-| classification-05       | VGG16                   | 128                     | sigmoid                 | 0.909                   | 0.015                   | a                        |
-| classification-06       | VGG16                   | 128                     | softmax                 | 0.909                   | 0.015                   | a                        |
-| classification-07       | VGG16                   | 1024                    | sigmoid                 | 0.901                   | 0.019                   | a                        |
-| classification-08       | VGG16                   | 1024                    | softmax                 | 0.909                   | 0.015                   | a                        |
-| classification-09       | EfficientNetB0          | 128                     | sigmoid                 | 0.909                   | 0.015                   | a                        |
-| classification-10       | EfficientNetB0          | 128                     | softmax                 | 0.901                   | 0.019                   | a                        |
-| classification-11       | EfficientNetB0          | 1024                    | sigmoid                 | 0.901                   | 0.019                   | a                        |
-| classification-12       | EfficientNetB0          | 1024                    | softmax                 | 0.854                   | 0.015                   | a                        |
-\newpage
-```{r}
-#| label: tbl-id.r5y16fnovap5
-#| tbl-cap: 'Images from multi-environmental trials from 2016 to 2019 employed for image analysis using high-throughput phenotyping for quinoa panicles. Experiments were conducted under different experimental designs (i.e. lattice and randomized complete blocks - RCBD) with presence of unbalanced data. Devices and image resolution were different for each experiment. The images from seasons 2021-2022 were used for model validation with the use of a scale in the images.'
-knitr::kable(tibble::tibble(' ' = ''))
-```
-| **Trial**        | **Season**       | **Genotypes**    | **Generation**   | **Location**     | **Exp. design**  | **Device**       | **Resolution**   | **Pictures**     | **Scale**         |
-|------------------|------------------|------------------|------------------|------------------|------------------|------------------|------------------|------------------|-------------------|
-| Selection        | 2016-2017        | 1200             | F6               | Camacani, Puno   | RCBD             | Nikon D5101      | 2736 x 3648      | 3862             | no                |
-| Registration     | 2017-2018        | 600              | F7               | Illpa, Puno      | Lattice 10x10    | ZTE Blade A610   | 2448 x 3264      | 1240             | no                |
-| Registration     | 2018-2019        | 25               | F8               | Camacani, Puno   | Lattice 5x5      | Samsung SM-T285M | 1440 x 2560      | 25               | no                |
-| Registration     | 2018-2019        | 25               | F8               | Illpa, Puno      | Lattice 5x5      | Samsung SM-T285M | 1440 x 2560      | 25               | no                |
-| Production       | 2021-2022        | 57               | F10              | Camacani, Puno   | RCBD             | Motorola G30     | 3456 x 4608      | 108              | yes               |
-\newpage
-```{r}
 #| label: fig-id.6ns3q793e24l
 #| fig-cap: 'Different types of heterogeneity in the image dataset of quinoa panicles. (a) Types of variation included in the analysis: Variation of lightning conditions, background, and panicle frame in the pictures. (b) Types of variation excluded in the analysis: Bird-damaged, blurred images, and overdry panicles were excluded from the dataset to avoid bias during training and image analysis.'
 
@@ -514,4 +458,63 @@ knitr::include_graphics('manuscript/img_3.jpg')
 
 knitr::include_graphics('manuscript/img_4.jpg')
 ```
+\newpage
+| **Trial**        | **Season**       | **Genotypes**    | **Generation**   | **Location**     | **Exp. design**  | **Device**       | **Resolution**   | **Pictures**     | **Scale**         |
+|------------------|------------------|------------------|------------------|------------------|------------------|------------------|------------------|------------------|-------------------|
+| Selection        | 2016-2017        | 1200             | F6               | Camacani, Puno   | RCBD             | Nikon D5101      | 2736 x 3648      | 3862             | no                |
+| Registration     | 2017-2018        | 600              | F7               | Illpa, Puno      | Lattice 10x10    | ZTE Blade A610   | 2448 x 3264      | 1240             | no                |
+| Registration     | 2018-2019        | 25               | F8               | Camacani, Puno   | Lattice 5x5      | Samsung SM-T285M | 1440 x 2560      | 25               | no                |
+| Registration     | 2018-2019        | 25               | F8               | Illpa, Puno      | Lattice 5x5      | Samsung SM-T285M | 1440 x 2560      | 25               | no                |
+| Production       | 2021-2022        | 57               | F10              | Camacani, Puno   | RCBD             | Motorola G30     | 3456 x 4608      | 108              | yes               |
+```{r}
+#| label: tbl-id.r5y16fnovap5
+#| tbl-cap: 'Images from multi-environmental trials from 2016 to 2019 employed for image analysis using high-throughput phenotyping for quinoa panicles. Experiments were conducted under different experimental designs (i.e. lattice and randomized complete blocks - RCBD) with presence of unbalanced data. Devices and image resolution were different for each experiment. The images from seasons 2021-2022 were used for model validation with the use of a scale in the images.'
+knitr::kable(tibble::tibble(' ' = ''))
+```
+\newpage
+| **Model**           | **loss weight**     | **mask resolution** | **heads.m**         | **ap595**           | **ste**             | **sig**              |
+|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|----------------------|
+| segmentation-1      | mask1class10        | 28x28               | all                 | 0.763               | 0.012               | a                    |
+| segmentation-2      | mask20class1        | 28x28               | all                 | 0.754               | 0.012               | a                    |
+| segmentation-3      | mask10class1        | 28x28               | all                 | 0.747               | 0.012               | a                    |
+| segmentation-4      | mask1class1         | 28x28               | all                 | 0.738               | 0.012               | a                    |
+| segmentation-5      | mask1class1         | 28x28               | heads               | 0.734               | 0.012               | a                    |
+| segmentation-6      | mask20class1        | 28x28               | heads               | 0.727               | 0.012               | ab                   |
+| segmentation-7      | mask10class1        | 28x28               | heads               | 0.725               | 0.012               | ab                   |
+| segmentation-8      | mask1class10        | 28x28               | heads               | 0.686               | 0.012               | b                    |
+| segmentation-9      | mask10class1        | 56x56               | all                 | 0.801               | 0.012               | a                    |
+| segmentation-10     | mask20class1        | 56x56               | all                 | 0.8                 | 0.012               | a                    |
+| segmentation-11     | mask1class1         | 56x56               | all                 | 0.791               | 0.012               | a                    |
+| segmentation-12     | mask1class10        | 56x56               | all                 | 0.782               | 0.012               | a                    |
+| segmentation-13     | mask1class1         | 56x56               | heads               | 0.758               | 0.012               | a                    |
+| segmentation-14     | mask1class10        | 56x56               | heads               | 0.751               | 0.012               | a                    |
+| segmentation-15     | mask10class1        | 56x56               | heads               | 0.737               | 0.012               | ab                   |
+| segmentation-16     | mask20class1        | 56x56               | heads               | 0.704               | 0.012               | b                    |
+```{r}
+#| label: tbl-id.vur4v4bpxbe8
+#| tbl-cap: 'Model performance for 16 segmentation models using Mask R-CNN for extracting the phenotypic information using different mask resolution, loss weight, and neural network parameters. Values represented by Least-squares means (ap595) and standard error (ste). Significance (sig) was estimated based on Tukey (p<0.05). Each model was run with five replications.'
+knitr::kable(tibble::tibble(' ' = ''))
+```
+\newpage
+| **Model**               | **architecture**        | **dense layers**        | **activation function** | **accuracy**            | **ste**                 | **sig**                  |
+|-------------------------|-------------------------|-------------------------|-------------------------|-------------------------|-------------------------|--------------------------|
+| classification-01       | InceptionV3             | 128                     | sigmoid                 | 0.917                   | 0.013                   | a                        |
+| classification-02       | InceptionV3             | 128                     | softmax                 | 0.871                   | 0.013                   | a                        |
+| classification-03       | InceptionV3             | 1024                    | sigmoid                 | 0.909                   | 0.015                   | a                        |
+| classification-04       | InceptionV3             | 1024                    | softmax                 | 0.924                   | 0.015                   | a                        |
+| classification-05       | VGG16                   | 128                     | sigmoid                 | 0.909                   | 0.015                   | a                        |
+| classification-06       | VGG16                   | 128                     | softmax                 | 0.909                   | 0.015                   | a                        |
+| classification-07       | VGG16                   | 1024                    | sigmoid                 | 0.901                   | 0.019                   | a                        |
+| classification-08       | VGG16                   | 1024                    | softmax                 | 0.909                   | 0.015                   | a                        |
+| classification-09       | EfficientNetB0          | 128                     | sigmoid                 | 0.909                   | 0.015                   | a                        |
+| classification-10       | EfficientNetB0          | 128                     | softmax                 | 0.901                   | 0.019                   | a                        |
+| classification-11       | EfficientNetB0          | 1024                    | sigmoid                 | 0.901                   | 0.019                   | a                        |
+| classification-12       | EfficientNetB0          | 1024                    | softmax                 | 0.854                   | 0.015                   | a                        |
+```{r}
+#| label: tbl-id.ddv8lvk6bvgs
+#| tbl-cap: 'Model performance for 12 classification models using three different architectures, dense layers, and activation function configurations for binary image classification for quinoa panicles in amarantiform and glomerulate panicle shapes. Values represented by Least-squares means (accuracy) and standard error (ste). Significance (sig) was estimated based on Tukey (p<0.05). Each model was run with five replications.'
+knitr::kable(tibble::tibble(' ' = ''))
+```
+\newpage
+\newpage
 \newpage
