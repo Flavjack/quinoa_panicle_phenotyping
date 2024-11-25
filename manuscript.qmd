@@ -8,7 +8,7 @@ format:
   docx:
     toc: false
     section-numbers: true
-    reference-doc: submission/plant-breeding/style.docx
+    reference-doc: submission/style.docx
 editor_options: 
   chunk_output_type: console
 execute:
@@ -25,7 +25,7 @@ crossref:
 # browseURL("https://docs.google.com/document/d/1Ufk1TI2oip_FIzS95cqRJW0XfVnR8fKjFbeKZHv5d1w/edit?usp=sharing")
 
 source("http://inkaverse.com/docs.r")
-doc <- inti::gdoc2qmd(file = "manuscript.zip"
+doc <- inti::gdoc2qmd(file = "_draft.zip"
                       , type = "listfull"
                       )
 params <- doc$params
