@@ -460,6 +460,11 @@ knitr::include_graphics('manuscript/img_3.jpg')
 knitr::include_graphics('manuscript/img_4.jpg')
 ```
 \newpage
+```{r}
+#| label: tbl-id.r5y16fnovap5
+#| tbl-cap: 'Images from multi-environmental trials from 2016 to 2019 employed for image analysis using high-throughput phenotyping for quinoa panicles. Experiments were conducted under different experimental designs (i.e. lattice and randomized complete blocks - RCBD) with presence of unbalanced data. Devices and image resolution were different for each experiment. The images from seasons 2021-2022 were used for model validation with the use of a scale in the images.'
+knitr::kable(tibble::tibble(' ' = ''))
+```
 | **Trial**        | **Season**       | **Genotypes**    | **Generation**   | **Location**     | **Exp. design**  | **Device**       | **Resolution**   | **Pictures**     | **Scale**         |
 |------------------|------------------|------------------|------------------|------------------|------------------|------------------|------------------|------------------|-------------------|
 | Selection        | 2016-2017        | 1200             | F6               | Camacani, Puno   | RCBD             | Nikon D5101      | 2736 x 3648      | 3862             | no                |
@@ -467,12 +472,12 @@ knitr::include_graphics('manuscript/img_4.jpg')
 | Registration     | 2018-2019        | 25               | F8               | Camacani, Puno   | Lattice 5x5      | Samsung SM-T285M | 1440 x 2560      | 25               | no                |
 | Registration     | 2018-2019        | 25               | F8               | Illpa, Puno      | Lattice 5x5      | Samsung SM-T285M | 1440 x 2560      | 25               | no                |
 | Production       | 2021-2022        | 57               | F10              | Camacani, Puno   | RCBD             | Motorola G30     | 3456 x 4608      | 108              | yes               |
+\newpage
 ```{r}
-#| label: tbl-id.r5y16fnovap5
-#| tbl-cap: 'Images from multi-environmental trials from 2016 to 2019 employed for image analysis using high-throughput phenotyping for quinoa panicles. Experiments were conducted under different experimental designs (i.e. lattice and randomized complete blocks - RCBD) with presence of unbalanced data. Devices and image resolution were different for each experiment. The images from seasons 2021-2022 were used for model validation with the use of a scale in the images.'
+#| label: tbl-id.vur4v4bpxbe8
+#| tbl-cap: 'Model performance for 16 segmentation models using Mask R-CNN for extracting the phenotypic information using different mask resolution, loss weight, and neural network parameters. Values represented by Least-squares means (ap595) and standard error (ste). Significance (sig) was estimated based on Tukey (p<0.05). Each model was run with five replications.'
 knitr::kable(tibble::tibble(' ' = ''))
 ```
-\newpage
 | **Model**           | **loss weight**     | **mask resolution** | **heads.m**         | **ap595**           | **ste**             | **sig**              |
 |---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|----------------------|
 | segmentation-1      | mask1class10        | 28x28               | all                 | 0.763               | 0.012               | a                    |
@@ -491,12 +496,12 @@ knitr::kable(tibble::tibble(' ' = ''))
 | segmentation-14     | mask1class10        | 56x56               | heads               | 0.751               | 0.012               | a                    |
 | segmentation-15     | mask10class1        | 56x56               | heads               | 0.737               | 0.012               | ab                   |
 | segmentation-16     | mask20class1        | 56x56               | heads               | 0.704               | 0.012               | b                    |
+\newpage
 ```{r}
-#| label: tbl-id.vur4v4bpxbe8
-#| tbl-cap: 'Model performance for 16 segmentation models using Mask R-CNN for extracting the phenotypic information using different mask resolution, loss weight, and neural network parameters. Values represented by Least-squares means (ap595) and standard error (ste). Significance (sig) was estimated based on Tukey (p<0.05). Each model was run with five replications.'
+#| label: tbl-id.ddv8lvk6bvgs
+#| tbl-cap: 'Model performance for 12 classification models using three different architectures, dense layers, and activation function configurations for binary image classification for quinoa panicles in amarantiform and glomerulate panicle shapes. Values represented by Least-squares means (accuracy) and standard error (ste). Significance (sig) was estimated based on Tukey (p<0.05). Each model was run with five replications.'
 knitr::kable(tibble::tibble(' ' = ''))
 ```
-\newpage
 | **Model**               | **architecture**        | **dense layers**        | **activation function** | **accuracy**            | **ste**                 | **sig**                  |
 |-------------------------|-------------------------|-------------------------|-------------------------|-------------------------|-------------------------|--------------------------|
 | classification-01       | InceptionV3             | 128                     | sigmoid                 | 0.917                   | 0.013                   | a                        |
@@ -511,9 +516,4 @@ knitr::kable(tibble::tibble(' ' = ''))
 | classification-10       | EfficientNetB0          | 128                     | softmax                 | 0.901                   | 0.019                   | a                        |
 | classification-11       | EfficientNetB0          | 1024                    | sigmoid                 | 0.901                   | 0.019                   | a                        |
 | classification-12       | EfficientNetB0          | 1024                    | softmax                 | 0.854                   | 0.015                   | a                        |
-```{r}
-#| label: tbl-id.ddv8lvk6bvgs
-#| tbl-cap: 'Model performance for 12 classification models using three different architectures, dense layers, and activation function configurations for binary image classification for quinoa panicles in amarantiform and glomerulate panicle shapes. Values represented by Least-squares means (accuracy) and standard error (ste). Significance (sig) was estimated based on Tukey (p<0.05). Each model was run with five replications.'
-knitr::kable(tibble::tibble(' ' = ''))
-```
 \newpage

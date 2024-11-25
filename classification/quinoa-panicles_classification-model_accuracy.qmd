@@ -27,14 +27,14 @@ source('https://inkaverse.com/setup.r')
 ## Install enviroment (Lydia)
 
 ```{git}
-cd 2-stage-approach/2-classification-part/
+cd classification/
 conda env create -f classifier-panicles.yml
 ```
 
 ## Activate conda
 
 ```{git}
-cd 2-stage-approach/2-classification-part/
+cd classification/
 conda init bash
 conda activate classifier-panicles
 conda env list
