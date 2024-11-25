@@ -54,5 +54,5 @@ gitignore
 *.sh
 *.gz
 _draft*
-submission$
+submission
 
