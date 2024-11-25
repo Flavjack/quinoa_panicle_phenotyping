@@ -53,4 +53,6 @@ gitignore
 *.h5
 *.sh
 *.gz
+_draft*
+submission$
 
